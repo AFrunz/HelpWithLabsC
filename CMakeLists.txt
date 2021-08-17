@@ -3,4 +3,4 @@ project(C)
 
 set(CMAKE_C_STANDARD 99)
 
-add_executable(main3 lab3/table.c lab3/keyspace1.c lab3/keyspace2.c)
+add_executable(main3 lab3/main3.c lab3/table.c lab3/keyspace1.c lab3/keyspace2.c)

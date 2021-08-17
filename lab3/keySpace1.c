@@ -78,29 +78,32 @@ int ks1_FindIndex(char* requiredKey, KeySpace1* ks, int lvl){
     return KEY_NF;
 }
 
-Node1* getNode(char* first, char* second){
+Node1* getNode(Item* item){
 //    Создание объекта Node и запись в него данных
     Node1 *bufNode = (Node1*)calloc(1, sizeof(Node1));
-    bufNode->info = (Item*)calloc(1, sizeof(Item));
-    bufNode->info->info = (InfoType*)calloc(1, sizeof(InfoType));
-    bufNode->info->info->first = (char*)malloc((strlen(first) + 1) * sizeof(char));
-    bufNode->info->info->second = (char*)malloc((strlen(second) + 1) * sizeof(char));
-    strcpy(bufNode->info->info->first, first);
-    strcpy(bufNode->info->info->second, second);
+    bufNode->info = item;
+//    bufNode->info = (Item*)calloc(1, sizeof(Item));
+//    bufNode->info->info = (InfoType*)calloc(1, sizeof(InfoType));
+//    bufNode->info->info->first = (char*)malloc((strlen(first) + 1) * sizeof(char));
+//    bufNode->info->info->second = (char*)malloc((strlen(second) + 1) * sizeof(char));
+//    strcpy(bufNode->info->info->first, first);
+//    strcpy(bufNode->info->info->second, second);
     return bufNode;
 }
 
-int ks1_Add(char* key, char* first, char* second, KeySpace1* ks, int* lvl, int max){
+int ks1_Add(char* key, Item* item, KeySpace1* ks, int* lvl, int max){
 //    Добавление элемента в таблицу
 //    Входные данные: Ключ, информация, ks, количество эл-в и размер таблицы
 //    Выходные данные: 0 - ок, 1 - таблица заполнена
 
     if (*lvl == max) return TABLE_FULL;                         // Проверка на заполненость таблицы
-    Node1* bufNode = getNode(first, second);
+    Node1* bufNode = getNode(item);
     int pos = ks1_FindIndex(key, ks, *lvl);
     if (pos != -1) {                                            // Если ключ уже есть в таблице
         bufNode->next = ks[pos].node;
         bufNode->release = ks[pos].node->release + 1;
+        bufNode->info->index = bufNode->release;
+        bufNode->info->ptr1 = ks + pos;
         ks[pos].node = bufNode;
         return ST_OK;
     }
@@ -112,6 +115,8 @@ int ks1_Add(char* key, char* first, char* second, KeySpace1* ks, int* lvl, int m
     }
     buf[i + 1].key = (char*)calloc(N, sizeof(char));
     strcpy(buf[i + 1].key, key);                                      // Вставка
+    bufNode->info->index = 0;
+    bufNode->info->ptr1 = buf + i + 1;
     buf[i + 1].node = bufNode;
     (*lvl)++;
     return ST_OK;
@@ -157,13 +162,18 @@ void nodeFree(Node1* el){
     }
 }
 
-int ks1_Delete(char* deletedKey, KeySpace1* ks, int *lvl, int version){
+int ks1_Delete(char* deletedKey, KeySpace1* ks, int *lvl, int version, KeySpace1* base){
 //  Удаление элемента по ключу и версии(или всех эл-в с конкретным ключем)
 //  Входные данные: ключ удаляемого эл-та, ks, кол-во эл-в, версия
 //  Выходные данные: 0 - ок, 2 - эл-т с заданным ключем не найден, 3 - эл-т с заданной версией не найден
-
-    int pos = ks1_FindIndex(deletedKey, ks, *lvl);
-    if (pos == -1) return EL_NOTFOUND;
+    int pos;
+    if (base){
+        pos =(int)(base - ks + 1);
+    }
+    else {
+        pos = ks1_FindIndex(deletedKey, ks, *lvl);
+        if (pos == -1) return EL_NOTFOUND;
+    }
     if (version != -1){                                     // Удаление по версии
         Node1 *buf = ks[pos].node;
         if (buf->release == version){                       // Если первый элемент
@@ -185,7 +195,9 @@ int ks1_Delete(char* deletedKey, KeySpace1* ks, int *lvl, int version){
             buf = buf->next;
         }
         if (buf && buf->release == version){                // Проверка
-            par->next = buf->next;
+            if (par){
+                par->next = buf->next;
+            }
             nodeFree(buf);
             return ST_OK;
         }

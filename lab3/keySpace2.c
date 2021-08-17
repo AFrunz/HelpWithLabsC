@@ -1,7 +1,6 @@
 #include "keySpace2.h"
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 
 
 
@@ -49,31 +48,32 @@ KeySpace2* ks2_Find(unsigned int requiredKey, KeySpace2** ks, int max){
     return NULL;
 }
 
-KeySpace2* getKS(char* first, char* second, unsigned int key){
+KeySpace2* getKS(Item* item, unsigned int key){
     KeySpace2 * bufKS = (KeySpace2*)calloc(1, sizeof(KeySpace2));
-    bufKS->info = (Item*)calloc(1, sizeof(Item));
-    bufKS->info->info = (InfoType*)calloc(1, sizeof(InfoType));
-    bufKS->info->info->second = (char*)calloc(strlen(second) + 1, sizeof(char));
-    bufKS->info->info->first = (char*)calloc(strlen(first) + 1, sizeof(char));
-    strcpy(bufKS->info->info->first, first);
-    strcpy(bufKS->info->info->second, second);
+    bufKS->info = item;
+//    bufKS->info = (Item*)calloc(1, sizeof(Item));
+//    bufKS->info->info = (InfoType*)calloc(1, sizeof(InfoType));
+//    bufKS->info->info->second = (char*)calloc(strlen(second) + 1, sizeof(char));
+//    bufKS->info->info->first = (char*)calloc(strlen(first) + 1, sizeof(char));
+//    strcpy(bufKS->info->info->first, first);
+//    strcpy(bufKS->info->info->second, second);
     bufKS->key = key;
     return bufKS;
 }
 
 
-int ks2_Add(unsigned int key, char* first, char* second, KeySpace2** ks, int max){
+int ks2_Add(unsigned int key, Item* item, KeySpace2** ks, int max){
     if (ks2_Find(key, ks, max)) return KEY_AE;
     int pos = hash_f(key, max);
-    KeySpace2* bufKS = getKS(first, second, key);
+    KeySpace2* bufKS = getKS(item, key);
     bufKS->next = ks[pos];
     ks[pos] = bufKS;
     return ST_OK;
 }
 
-void freeKS(KeySpace2* el){
+void freeKS(KeySpace2* el, int flag){
     if (el){
-        if (el->info){
+        if (el->info && !flag){
             if (el->info->info){
                 if (el->info->info->second) free(el->info->info->second);
                 if (el->info->info->first) free(el->info->info->first);
@@ -85,7 +85,7 @@ void freeKS(KeySpace2* el){
     }
 }
 
-int ks2_Delete(unsigned int deletedKey, KeySpace2** ks, int max){
+int ks2_Delete(unsigned int deletedKey, KeySpace2** ks, int max, int flag){
     KeySpace2* element = ks2_Find(deletedKey, ks, max);
     if (!element) return EL_NOTFOUND;
     int pos = hash_f(deletedKey, max);
@@ -104,7 +104,7 @@ int ks2_Delete(unsigned int deletedKey, KeySpace2** ks, int max){
         par = buf;
         buf = buf->next;
     }
-    freeKS(buf);
+    freeKS(buf, flag);
     return ST_OK;
 }
 
@@ -117,7 +117,7 @@ void ks2_Free(KeySpace2** ks, int max){
             while (buf){
                 del = buf;
                 buf = buf->next;
-                freeKS(del);
+                freeKS(del, 0);
             }
         }
     }
