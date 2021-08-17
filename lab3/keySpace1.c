@@ -22,7 +22,9 @@ typedef enum ans {
     ST_OK = 0,
     EL_NOTFOUND = 2,
     VERS_NOTFOUND = 3,
+    KEY_AE = 4
 }ans;
+
 
 
 int str_compare(char* s1, char* s2){
