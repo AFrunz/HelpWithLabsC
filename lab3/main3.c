@@ -33,13 +33,10 @@ char* getString(){
     return res;
 }
 
-
-
-
 int main(){
 
-    char *var[] = {"0. Exit", "1. Add(key1, key2)", "2. Find(key1, key2)", "3. Delete(Key1, Key2)", "4. Find(Key1)",
-                   "5. Find(Key2)", "6. Delete(Key1)", "7. Delete(Key2)", "8. Print(on the KS1)", "9. Print(on the KS2)"};
+    char *var[] = {"0. Exit", "1. Add(key1, key2)", "2. Find(key1, key2)", "3. Delete(Key1, Key2)", "4. TableFind(Key1)",
+                   "5. TableFind(Key2)", "6. Table Delete(Key1)", "7. Table Delete(Key2)", "8. Print"};
     int sizeVar = sizeof(var) / sizeof(char*);
 
     int choice = -1;
@@ -91,30 +88,74 @@ int main(){
             free(key1);
         }
         else if (choice == 4){
+            //TableFind(Key1)
             printf("Enter key1 (str)\n");
             char* key1 = getString();
-            ks1_Find()
+            printf("Enter version or -1 (int)\n");
+            int vers;
+            scanf("%d", &vers);
+            KeySpace1* res = ks1_Find(key1, t->ks1, t->csize1, vers);
+            if (!res) printf("Element not found\n");
+            else {
+                Node1* bufNode = res->node;
+                Node1* delNode = NULL;
+                while (bufNode){
+                    delNode = bufNode;
+                    printf("%s %u %s %s\n", bufNode->info->ptr1->key, bufNode->info->key2,
+                           bufNode->info->info->first, bufNode->info->info->second);
+                    bufNode = bufNode->next;
+                    free(delNode);
+                }
+                free(res->key);
+                free(res);
+            }
         }
+        else if (choice == 5){
+            //TableFind(Key2)
+            printf("Enter key2 (u int)\n");
+            unsigned int key2;
+            scanf("%u", &key2);
+            KeySpace2 *res = ks2_Find(key2, t->ks2, t->msize2);
+            if (!res) printf("Element not found\n");
+            else printf("%s %u %s %s\n",res->info->ptr1->key, res->key, res->info->info->first, res->info->info->second);
+        }
+        else if (choice == 6){
+            //Table Delete(Key1)
+            printf("Enter key1 (str)\n");
+            char* key1 = getString();
+            printf("Enter version or -1 (int)\n");
+            int vers;
+            scanf("%d", &vers);
+            status = ks1_Delete(key1, t->ks1, &(t->csize1), vers, NULL, t);
+            if (status == EL_NOTFOUND) printf("Key not found\n");
+            if (status == VERS_NOTFOUND) printf("Key with this version not found\n");
+            if (status == ST_OK) printf("Success\n");
+            free(key1);
+        }
+        else if (choice == 7){
+            // Table Delete(Key2)
+            printf("Enter key2 (u int)\n");
+            unsigned int key2;
+            scanf("%u", &key2);
+            KeySpace2* res = ks2_Find(key2, t->ks2, t->msize2);
+            if (!res) printf("Element not found\n");
+            else {
+                status = ks1_Delete(res->info->ptr1->key, t->ks1, &(t->csize1), res->info->index, res->info->ptr1, t);
+                if (status == KEY_NF) printf("Key not found\n");
+                if (status == VERS_NOTFOUND) printf("Key with this version not found\n");
+                if (status == ST_OK) printf("Success\n");
+            }
 
-
-
-
-
-
+        }
         else if (choice == 8){
-            ks1_Print(t->ks1, t->csize1);
+            table_Print(t);
         }
-        else if (choice == 9){
-            ks2_Print(t->ks2, t->msize2);
-        }
-
-
 
         for (int i = 0; i < sizeVar; i++) {
             printf("%s\n", var[i]);
         }
         scanf("%d%*c", &choice);
         }
-
+    table_Free(t);
     return 0;
 }

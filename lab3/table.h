@@ -29,4 +29,10 @@ Item* table_Find(char* key1, unsigned int key2, Table* t);
 
 int table_Delete(char* key1, unsigned int key2, Table* t);
 
+void table_Print(Table* t);
+
+int ks1_Delete(char* deletedKey, KeySpace1* ks, int *lvl, int version, KeySpace1* base, Table* t);
+
+void table_Free(Table* t);
+
 #endif

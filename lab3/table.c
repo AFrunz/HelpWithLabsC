@@ -1,6 +1,7 @@
 #include "table.h"
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 
 /*- 1) включение нового элемента в таблицу с соблюдением ограничений на уникальность
 ключей в соответствующих ключевых пространствах и уникальности составного ключа (key1, key2);
@@ -59,9 +60,43 @@ Item* table_Find(char* key1, unsigned int key2, Table* t){
 int table_Delete(char* key1, unsigned int key2, Table* t){
     Item* block = table_Find(key1, key2, t);
     if (!block) return EL_NOTFOUND;
-    ks1_Delete(key1, t->ks1, &(t->csize1), block->index, block->ptr1);
-    ks2_Delete(key2, t->ks2, t->msize2, 1);
+    ks1_Delete(key1, t->ks1, &(t->csize1), block->index, block->ptr1, t);
     return ST_OK;
+}
+
+void table_Print(Table* t){
+    KeySpace2 **ks = t->ks2;
+    int max = t->msize2;
+    printf("%3s %3s %6s %6s\n", "key1", "key2", "info1", "info2");
+    for (int i = 0; i < max; i++, ks++){
+        if (*ks){
+            KeySpace2 *buf = *ks;
+            while (buf){
+                printf("%3s %3u %6s %6s\n", buf->info->ptr1->key, buf->key, buf->info->info->first, buf->info->info->second);
+                buf = buf->next;
+            }
+        }
+    }
+}
+
+void table_Free(Table* t){
+    KeySpace2** ks = t->ks2;
+    int max = t->msize2;
+    for (int i = 0; i < max; i++, ks++){
+        if (*ks){
+            KeySpace2* buf = *ks;
+            KeySpace2* del = NULL;
+            while (buf){
+                del = buf;
+                buf = buf->next;
+                free(del->info->ptr1->key);
+                freeKS(del, 0);
+            }
+        }
+    }
+    free(t->ks1);
+    free(t->ks2);
+    free(t);
 }
 
 

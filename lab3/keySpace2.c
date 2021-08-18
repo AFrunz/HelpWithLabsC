@@ -51,6 +51,7 @@ KeySpace2* ks2_Find(unsigned int requiredKey, KeySpace2** ks, int max){
 KeySpace2* getKS(Item* item, unsigned int key){
     KeySpace2 * bufKS = (KeySpace2*)calloc(1, sizeof(KeySpace2));
     bufKS->info = item;
+    bufKS->info->key2 = key;
 //    bufKS->info = (Item*)calloc(1, sizeof(Item));
 //    bufKS->info->info = (InfoType*)calloc(1, sizeof(InfoType));
 //    bufKS->info->info->second = (char*)calloc(strlen(second) + 1, sizeof(char));

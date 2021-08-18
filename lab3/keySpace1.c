@@ -1,4 +1,5 @@
 #include "keySpace1.h"
+#include "table.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -15,15 +16,6 @@
  * также заданного своим ключом; результатом поиска должна быть новая таблица, содержащая найденные элементы;
  *  () - удаление из таблицы всех элементов с заданным ключом или элемента определенной версии, также заданного своим ключом.
  */
-
-typedef enum ans {
-    KEY_NF = -1,
-    TABLE_FULL = 1,
-    ST_OK = 0,
-    EL_NOTFOUND = 2,
-    VERS_NOTFOUND = 3,
-    KEY_AE = 4
-}ans;
 
 
 
@@ -162,13 +154,13 @@ void nodeFree(Node1* el){
     }
 }
 
-int ks1_Delete(char* deletedKey, KeySpace1* ks, int *lvl, int version, KeySpace1* base){
+int ks1_Delete(char* deletedKey, KeySpace1* ks, int *lvl, int version, KeySpace1* base, Table* t){
 //  Удаление элемента по ключу и версии(или всех эл-в с конкретным ключем)
 //  Входные данные: ключ удаляемого эл-та, ks, кол-во эл-в, версия
 //  Выходные данные: 0 - ок, 2 - эл-т с заданным ключем не найден, 3 - эл-т с заданной версией не найден
     int pos;
     if (base){
-        pos =(int)(base - ks + 1);
+        pos =(int)(base - ks);
     }
     else {
         pos = ks1_FindIndex(deletedKey, ks, *lvl);
@@ -178,6 +170,7 @@ int ks1_Delete(char* deletedKey, KeySpace1* ks, int *lvl, int version, KeySpace1
         Node1 *buf = ks[pos].node;
         if (buf->release == version){                       // Если первый элемент
             ks[pos].node = ks[pos].node->next;
+            ks2_Delete(buf->info->key2, t->ks2, t->msize2, 1);
             nodeFree(buf);
             if (ks[pos].node) return ST_OK;                 // Если элемент был единственным
             else {
@@ -198,6 +191,7 @@ int ks1_Delete(char* deletedKey, KeySpace1* ks, int *lvl, int version, KeySpace1
             if (par){
                 par->next = buf->next;
             }
+            ks2_Delete(buf->info->key2, t->ks2, t->msize2, 1);
             nodeFree(buf);
             return ST_OK;
         }
@@ -212,6 +206,7 @@ int ks1_Delete(char* deletedKey, KeySpace1* ks, int *lvl, int version, KeySpace1
     while (bufEl){
         delEl = bufEl;
         bufEl = bufEl->next;
+        ks2_Delete(delEl->info->key2, t->ks2, t->msize2, 1);
         nodeFree(delEl);
     }
     free(ks[*lvl - 1].key);
