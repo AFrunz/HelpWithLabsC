@@ -118,7 +118,7 @@ void ks2_Free(KeySpace2** ks, int max){
             while (buf){
                 del = buf;
                 buf = buf->next;
-                freeKS(del, 0);
+                freeKS(del, 1);
             }
         }
     }

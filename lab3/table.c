@@ -80,22 +80,8 @@ void table_Print(Table* t){
 }
 
 void table_Free(Table* t){
-    KeySpace2** ks = t->ks2;
-    int max = t->msize2;
-    for (int i = 0; i < max; i++, ks++){
-        if (*ks){
-            KeySpace2* buf = *ks;
-            KeySpace2* del = NULL;
-            while (buf){
-                del = buf;
-                buf = buf->next;
-                free(del->info->ptr1->key);
-                freeKS(del, 0);
-            }
-        }
-    }
-    free(t->ks1);
-    free(t->ks2);
+    ks1_Free(t->ks1, t->csize1);
+    ks2_Free(t->ks2, t->msize2);
     free(t);
 }
 
