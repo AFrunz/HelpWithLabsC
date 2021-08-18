@@ -5,20 +5,6 @@
 #include <string.h>
 #define N 100 // Максимальный размер ключа
 
-/* (1) Инициаллизация
- * (2) Поиск
- * (3) Добавление
- * (4) Удаление
- * (5) Очистка памяти
- *
- *  Упорядоченая таблица, вектор, ключи могут повторяться (версии)
- *  () - поиск в таблице всех версий элемента, заданного ключом, или конкретной (заданной) версии элемента,
- * также заданного своим ключом; результатом поиска должна быть новая таблица, содержащая найденные элементы;
- *  () - удаление из таблицы всех элементов с заданным ключом или элемента определенной версии, также заданного своим ключом.
- */
-
-
-
 int str_compare(char* s1, char* s2){
 // Сравнение строк
 //    Возвращает 1, s1 > s2
@@ -50,7 +36,7 @@ KeySpace1* ks1_Init(int size){
 
 
 int ks1_FindIndex(char* requiredKey, KeySpace1* ks, int lvl){
-//    Поиск в таблице по ключу
+//    Поиск в таблице по ключу (бинарный поиск)
 //    Входные данные: Искомый ключ, ks1, количество эл-в
 //    Выходные данные: Позиция эл-та или -1
     int up = lvl - 1, low = 0, i;
@@ -72,14 +58,10 @@ int ks1_FindIndex(char* requiredKey, KeySpace1* ks, int lvl){
 
 Node1* getNode(Item* item){
 //    Создание объекта Node и запись в него данных
+//    Входные данные: указатель на эл-т Item
+//    Выходные данные: указатель на эл-т Node1
     Node1 *bufNode = (Node1*)calloc(1, sizeof(Node1));
     bufNode->info = item;
-//    bufNode->info = (Item*)calloc(1, sizeof(Item));
-//    bufNode->info->info = (InfoType*)calloc(1, sizeof(InfoType));
-//    bufNode->info->info->first = (char*)malloc((strlen(first) + 1) * sizeof(char));
-//    bufNode->info->info->second = (char*)malloc((strlen(second) + 1) * sizeof(char));
-//    strcpy(bufNode->info->info->first, first);
-//    strcpy(bufNode->info->info->second, second);
     return bufNode;
 }
 
@@ -115,9 +97,9 @@ int ks1_Add(char* key, Item* item, KeySpace1* ks, int* lvl, int max){
 }
 
 KeySpace1* ks1_Find(char* requiredKey, KeySpace1* ks, int lvl, int version){
-    // Поиск элемента/тов с использованием версии
-    // Входные данные: Искомый ключ, ks, кол-во эл-в, версия
-
+//    Поиск элемента/тов с использованием версии
+//    Входные данные: Искомый ключ, ks, кол-во эл-в, версия
+//    Выходные данные: указатель на таблицу KS2 с результатами
     int pos = ks1_FindIndex(requiredKey, ks, lvl);
     if (pos == -1) return NULL;
     if (version == -1) {
@@ -156,7 +138,7 @@ void nodeFree(Node1* el){
 
 int ks1_Delete(char* deletedKey, KeySpace1* ks, int *lvl, int version, KeySpace1* base, Table* t){
 //  Удаление элемента по ключу и версии(или всех эл-в с конкретным ключем)
-//  Входные данные: ключ удаляемого эл-та, ks, кол-во эл-в, версия
+//  Входные данные: ключ удаляемого эл-та, ks1, кол-во эл-в, версия, указатель на эл-т или NULL, nf,kbwf
 //  Выходные данные: 0 - ок, 2 - эл-т с заданным ключем не найден, 3 - эл-т с заданной версией не найден
     int pos;
     if (base){
@@ -198,7 +180,7 @@ int ks1_Delete(char* deletedKey, KeySpace1* ks, int *lvl, int version, KeySpace1
         else return VERS_NOTFOUND;
     }
 
-    Node1 *delEl = (ks + pos)->node;
+    Node1 *delEl = (ks + pos)->node;                // Удаление без версии
     Node1 *bufEl = delEl;
     for (int i = pos; i < *lvl - 1; i++){
         ks[i] = ks[i + 1];
@@ -243,27 +225,3 @@ void ks1_Free(KeySpace1* ks, int lvl){
     }
     free(bufKS);
 }
-
-
-//int main(){
-//    KeySpace1* table = ks1_Init(6);
-//    int lvl = 0;
-//    char* s = "1";
-//    ks1_Add("7", s, s, table, &lvl, 6);
-//    ks1_Add("6", s, s, table, &lvl, 6);
-//    ks1_Add("5", s, s, table, &lvl, 6);
-//    ks1_Add("4", s, s, table, &lvl, 6);
-//    ks1_Add("3", s, s, table, &lvl, 6);
-//    ks1_Add("2", s, s, table, &lvl, 6);
-//    ks1_Add("1", s, s, table, &lvl, 6);
-////    ks1_Print(table, lvl);
-////    printf("\n");
-////    ks1_Delete("7", table, &lvl, -1);
-////    ks1_Add("7", s, s, table, &lvl, 6);
-////    ks1_Delete("5", table, &lvl, 0);
-////    ks1_Print(table, lvl);
-//    ks1_Free(table, lvl);
-//    return 0;
-//}
-
-

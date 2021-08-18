@@ -39,8 +39,6 @@ int ks1_Add(char* key, Item* item, KeySpace1* ks, int* lvl, int max);
 
 KeySpace1* ks1_Find(char* requiredKey, KeySpace1* ks, int lvl, int version);
 
-//int ks1_Delete(char* deletedKey, KeySpace1* ks, int *lvl, int version, KeySpace1* base, Table* t);
-
 void ks1_Free(KeySpace1* ks, int lvl);
 
 void ks1_Print(KeySpace1* ks, int lvl);

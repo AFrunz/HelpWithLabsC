@@ -3,16 +3,6 @@
 #include <stdlib.h>
 
 
-
-/*   * (2) Перемешанная таблица, сцеплением, ключи уникальны
-
- *    (1) Инициаллизация
- *    (2) Поиск
- *    (3) Добавление эл-та
- *    (4) Удаление эл-та
- *    (5) Очистка памяти
-
- */
 typedef enum ans {
     KEY_NF = -1,
     TABLE_FULL = 1,
@@ -24,18 +14,20 @@ typedef enum ans {
 
 
 
-
-
 KeySpace2** ks2_Init(int size){
 //    Выделение памяти под таблицу
      return (KeySpace2**)calloc(size, sizeof(KeySpace2*));
 }
 
 int hash_f(unsigned int key, int max){
+//    Хэш-функция
     return ((int)key % max);
 }
 
 KeySpace2* ks2_Find(unsigned int requiredKey, KeySpace2** ks, int max){
+//    Поиск по ks2
+//    Входные данные: искомый ключ, ks, размер таблицы
+//    Выходные данные: указатель на эл-т
     int pos = hash_f(requiredKey, max);
     if (!ks[pos]) return NULL;
     KeySpace2* buf = ks[pos];
@@ -49,21 +41,21 @@ KeySpace2* ks2_Find(unsigned int requiredKey, KeySpace2** ks, int max){
 }
 
 KeySpace2* getKS(Item* item, unsigned int key){
+//    Создание элемента ks и запись в него данных
+//    Входные данные: данные, ключ
+//    Выходные данные: указатель на эл-т ks2
     KeySpace2 * bufKS = (KeySpace2*)calloc(1, sizeof(KeySpace2));
     bufKS->info = item;
     bufKS->info->key2 = key;
-//    bufKS->info = (Item*)calloc(1, sizeof(Item));
-//    bufKS->info->info = (InfoType*)calloc(1, sizeof(InfoType));
-//    bufKS->info->info->second = (char*)calloc(strlen(second) + 1, sizeof(char));
-//    bufKS->info->info->first = (char*)calloc(strlen(first) + 1, sizeof(char));
-//    strcpy(bufKS->info->info->first, first);
-//    strcpy(bufKS->info->info->second, second);
     bufKS->key = key;
     return bufKS;
 }
 
 
 int ks2_Add(unsigned int key, Item* item, KeySpace2** ks, int max){
+//    Добавление элемента
+//    Входные данные: ключ, данные, ks, размер таблицы
+//    Выходные данные: код ошибки
     if (ks2_Find(key, ks, max)) return KEY_AE;
     int pos = hash_f(key, max);
     KeySpace2* bufKS = getKS(item, key);
@@ -73,6 +65,9 @@ int ks2_Add(unsigned int key, Item* item, KeySpace2** ks, int max){
 }
 
 void freeKS(KeySpace2* el, int flag){
+//    Очистка памяти элемента KeySpace2
+//    Входные данные: элемент, флаг(0 - очищать данные, 1 - нет)
+//    Выходные данные:
     if (el){
         if (el->info && !flag){
             if (el->info->info){
@@ -87,6 +82,9 @@ void freeKS(KeySpace2* el, int flag){
 }
 
 int ks2_Delete(unsigned int deletedKey, KeySpace2** ks, int max, int flag){
+//    Удаление эл-та ks2
+//    Входные данные: ключ, ks, размер таблицы, флаг(0 - очищать данные, 1 - нет)
+//    Выходные данные: код ошибки
     KeySpace2* element = ks2_Find(deletedKey, ks, max);
     if (!element) return EL_NOTFOUND;
     int pos = hash_f(deletedKey, max);
@@ -110,6 +108,7 @@ int ks2_Delete(unsigned int deletedKey, KeySpace2** ks, int max, int flag){
 }
 
 void ks2_Free(KeySpace2** ks, int max){
+//    Очистка памяти
     KeySpace2** bufKS = ks;
     for (int i = 0; i < max; i++, ks++){
         if (*ks){
@@ -141,24 +140,4 @@ void ks2_Print(KeySpace2** ks, int max){
         }
     }
 }
-
-
-//int main() {
-//    KeySpace2 **table = ks2_Init(10);
-//    int lvl = 0;
-//    char *s = "1";
-//    ks2_Add(7, s, s, table, 10);
-//    ks2_Add(6, s, s, table, 10);
-//    ks2_Add(5, s, s, table, 10);
-//    ks2_Add(4, s, s, table, 10);
-//    ks2_Add(3, s, s, table, 10);
-//    ks2_Add(2, s, s, table, 10);
-//    ks2_Add(6, s, s, table, 10);
-////    ks2_Delete(1, table, 10);
-////    ks2_Delete(7, table, 10);
-//    ks2_Print(table, 10);
-//    ks2_Free(table, 10);
-//    return 0;
-//}
-
 
