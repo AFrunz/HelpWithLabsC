@@ -1,6 +1,10 @@
 //#include "keySpace2.h"
 #include <stdio.h>
 #include <stdlib.h>
+#define ks1file "C:\\Users\\frunz\\Desktop\\c_or_c++\\C\\lab3b\\ks1.bin"
+#define ks2file "C:\\Users\\frunz\\Desktop\\c_or_c++\\C\\lab3b\\ks2.bin"
+#define infofile "C:\\Users\\frunz\\Desktop\\c_or_c++\\C\\lab3b\\info.bin"
+
 
 
 typedef enum ans {
@@ -32,16 +36,20 @@ typedef struct KeySpace2{
     fpos_t next; /* указатель на следующий элемент struct KeySpace2*  */
 }KeySpace2;
 
-KeySpace2* ks2_Pull(char* ks2FileName){
+KeySpace2* ks2_Pull(char* ks2FileName, int msize2){
 //    Загрузка таблицы из файла
     FILE *f = fopen(ks2FileName, "r+");
-    if (!f) {
-        return NULL;
+    if (msize2 != -1) {
+        KeySpace2 *space = (KeySpace2*)calloc(msize2, sizeof(KeySpace2));
+        fwrite(&msize2, sizeof(int), 1, f);
+        fclose(f);
+        return space;
     }
     int n;
     fread(&n, sizeof(int), 1, f);
     KeySpace2* space = (KeySpace2*)calloc(n, sizeof(KeySpace2));
     fread(space, sizeof(KeySpace2), n, f);
+    fclose(f);
     return space;
 }
 
@@ -73,34 +81,132 @@ KeySpace2* ks2_Find(unsigned int requiredKey, KeySpace2* ks, int max, char* Ks2F
             fclose(f);
             return buf;
         }
-        fseek(f, (long)buf->next, SEEK_SET);
+        if (buf->next == 0) {
+            fclose(f);
+            return NULL;
+        }
+        fsetpos(f, &buf->next);
         fread(&buf, 1, sizeof(KeySpace2), f);
     }
     fclose(f);
     return NULL;
 }
 
-//KeySpace2* getKS(Item* item, unsigned int key){
-////    Создание элемента ks и запись в него данных
-////    Входные данные: данные, ключ
-////    Выходные данные: указатель на эл-т ks2
-//    KeySpace2* bufKS = (KeySpace2*)calloc(1, sizeof(KeySpace2));
-//    bufKS->info = item;
+KeySpace2* getKS(fpos_t item, unsigned int key, char* Ks2FileName){
+//    Создание элемента ks и запись в него данных
+//    Входные данные: данные, ключ
+//    Выходные данные: указатель на эл-т ks2
+    FILE *f = fopen(Ks2FileName, "r+");
+    KeySpace2* bufKS = (KeySpace2*)calloc(1, sizeof(KeySpace2));
+    bufKS->info = item;
 //    bufKS->info->key2 = key;
-//    bufKS->key = key;
-//    return bufKS;
-//}
+    bufKS->key = key;
+    bufKS->status = 1;
+    fclose(f);
+    return bufKS;
+}
 
-
-
-int ks2_Add(unsigned int key, Item* item, KeySpace2* ks, int max, char* Ks2FileName){
+int ks2_Add(unsigned int key, fpos_t item, KeySpace2* ks, int max, char* Ks2FileName){
 //    Добавление элемента
 //    Входные данные: ключ, данные, ks, размер таблицы
 //    Выходные данные: код ошибки
     if (ks2_Find(key, ks, max, Ks2FileName)) return KEY_AE;
     int pos = hash_f(key, max);
-//    KeySpace2* bufKS = getKS(item, key);
-    bufKS->next = ks[pos];
-    ks[pos] = bufKS;
+    FILE *f = fopen(Ks2FileName, "r+");
+
+    if (!(ks + pos)->status){
+        (ks + pos)->key = key;
+        (ks + pos)->status = 1;
+        (ks + pos)->info = item;
+        fclose(f);
+        return ST_OK;
+    }
+    KeySpace2* bufKS = getKS(item, key, Ks2FileName);
+    fseek(f, 0, SEEK_END);
+    fpos_t nextPos;
+    fgetpos(f, &nextPos);
+    fwrite(bufKS, sizeof(KeySpace2), 1, f);
+    bufKS->next = (ks + pos)->next;
+    (ks + pos)->next = nextPos;
+    fclose(f);
     return ST_OK;
 }
+
+
+int ks2_Delete(unsigned int deletedKey, KeySpace2* ks, int max, int flag, char* Ks2FileName){
+//    Удаление эл-та ks2
+//    Входные данные: ключ, ks, размер таблицы, флаг(0 - очищать данные, 1 - нет)
+//    Выходные данные: код ошибки
+    KeySpace2* element = ks2_Find(deletedKey, ks, max, Ks2FileName);
+    if (!element) return EL_NOTFOUND;
+    int pos = hash_f(deletedKey, max);
+    KeySpace2* buf = ks + pos;
+    FILE *f = fopen(Ks2FileName, "r+");
+    if (buf->key == deletedKey){            // Если удаляемый эл-т - первый в списке
+        if (!buf->next){
+            buf->status = 0;
+            //freeElement
+            fclose(f);
+            return ST_OK;
+        }
+        KeySpace2 *nextEl = (KeySpace2*)calloc(1, sizeof(KeySpace2));
+        fsetpos(f, &buf->next);
+        fread(nextEl, sizeof(KeySpace2), 1, f);
+        buf->next = nextEl->next;
+        buf->key = nextEl->key;
+        buf->info = nextEl->info;
+        fclose(f);
+        return ST_OK;
+    }
+    KeySpace2* par = NULL;
+    while (1) {                           // Поиск эл-та по списку
+        if (buf->key == deletedKey){
+            par->next = buf->next;
+            break;
+        }
+        if (!buf->next) return EL_NOTFOUND;
+        par = buf;
+        fsetpos(f, &buf->next);
+        fread(buf, sizeof(KeySpace2), 1, f);
+    }
+    fclose(f);
+//    freeKS(buf, flag);
+    return ST_OK;
+}
+
+
+
+
+void ks2_Print(char* fileName){
+    FILE *f = fopen(fileName, "r+");
+    int n;
+    fread(&n, sizeof(int), 1, f);
+    KeySpace2 *ks = calloc(n, sizeof(KeySpace2));
+    fread(ks, sizeof(KeySpace2), n, f);
+    for (int i = 0; i < n; i++, ks++){
+        printf("%d %u", ks->status, ks->key);
+        KeySpace2 *buf = ks;
+        while (buf->next){
+            fsetpos(f, &buf->next);
+            fread(buf, sizeof(KeySpace2), 1, f);
+            printf("-> %d %u", buf->status, buf->key);
+        }
+        printf("\n");
+    }
+    fclose(f);
+}
+
+
+int main(){
+    int msize2 = 15;
+//    ks2_Print(ks2file);
+    KeySpace2* ks2 = ks2_Pull(ks2file, -1);
+    ks2_Delete(24, ks2, msize2, 0, ks2file);
+//    ks2_Add(9, 150, ks2, msize2, ks2file);
+    ks2_Push(ks2file,ks2, msize2);
+    ks2_Print(ks2file);
+    return 0;
+}
+
+
+
