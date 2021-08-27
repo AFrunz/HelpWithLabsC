@@ -38,7 +38,7 @@ typedef struct KeySpace2{
 
 KeySpace2* ks2_Pull(char* ks2FileName, int msize2){
 //    Загрузка таблицы из файла
-    FILE *f = fopen(ks2FileName, "r+");
+    FILE *f = fopen(ks2FileName, "r+b");
     if (msize2 != -1) {
         KeySpace2 *space = (KeySpace2*)calloc(msize2, sizeof(KeySpace2));
         fwrite(&msize2, sizeof(int), 1, f);
@@ -56,7 +56,7 @@ KeySpace2* ks2_Pull(char* ks2FileName, int msize2){
 
 void ks2_Push(char* Ks2FileName, KeySpace2* ks, int n){
 //    Загрузка таблицы в файл
-    FILE *f = fopen(Ks2FileName, "r+");
+    FILE *f = fopen(Ks2FileName, "r+b");
     fwrite(&n, 1, sizeof(int), f);
     fwrite(ks, n, sizeof(KeySpace2), f);
     fclose(f);
@@ -75,7 +75,7 @@ KeySpace2* ks2_Find(unsigned int requiredKey, KeySpace2* ks, int max, char* Ks2F
     int pos = hash_f(requiredKey, max);
     if (!(ks + pos)->status) return NULL;
     KeySpace2* buf = ks + pos;
-    FILE *f = fopen(Ks2FileName, "r+");
+    FILE *f = fopen(Ks2FileName, "r+b");
     while (buf){
         if (buf->key == requiredKey){
             fclose(f);
@@ -96,7 +96,7 @@ KeySpace2* getKS(fpos_t item, unsigned int key, char* Ks2FileName){
 //    Создание элемента ks и запись в него данных
 //    Входные данные: данные, ключ
 //    Выходные данные: указатель на эл-т ks2
-    FILE *f = fopen(Ks2FileName, "r+");
+    FILE *f = fopen(Ks2FileName, "r+b");
     KeySpace2* bufKS = (KeySpace2*)calloc(1, sizeof(KeySpace2));
     bufKS->info = item;
 //    bufKS->info->key2 = key;
@@ -112,7 +112,7 @@ int ks2_Add(unsigned int key, fpos_t item, KeySpace2* ks, int max, char* Ks2File
 //    Выходные данные: код ошибки
     if (ks2_Find(key, ks, max, Ks2FileName)) return KEY_AE;
     int pos = hash_f(key, max);
-    FILE *f = fopen(Ks2FileName, "r+");
+    FILE *f = fopen(Ks2FileName, "r+b");
 
     if (!(ks + pos)->status){
         (ks + pos)->key = key;
@@ -141,7 +141,7 @@ int ks2_Delete(unsigned int deletedKey, KeySpace2* ks, int max, int flag, char* 
     if (!element) return EL_NOTFOUND;
     int pos = hash_f(deletedKey, max);
     KeySpace2* buf = ks + pos;
-    FILE *f = fopen(Ks2FileName, "r+");
+    FILE *f = fopen(Ks2FileName, "r+b");
     if (buf->key == deletedKey){            // Если удаляемый эл-т - первый в списке
         if (!buf->next){
             buf->status = 0;
@@ -178,7 +178,7 @@ int ks2_Delete(unsigned int deletedKey, KeySpace2* ks, int max, int flag, char* 
 
 
 void ks2_Print(char* fileName){
-    FILE *f = fopen(fileName, "r+");
+    FILE *f = fopen(fileName, "r+b");
     int n;
     fread(&n, sizeof(int), 1, f);
     KeySpace2 *ks = calloc(n, sizeof(KeySpace2));

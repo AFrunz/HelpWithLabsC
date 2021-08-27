@@ -60,52 +60,41 @@ int str_compare(char* s1, char* s2){
 }
 
 char* freadStr(fpos_t pos, FILE *f){
-    if (pos == -1) return NULL;
-    char* string = (char*)calloc(1, sizeof(char));
-    char symbol = '1';
-    int len = 0;
+    if (pos == 0) return NULL;
+    char* string = (char*)calloc(N, sizeof(char));
     fsetpos(f, &pos);
-    while (symbol != '\0'){
-        fread(&symbol, sizeof(char), 1, f);
-        len++;
-        string = (char*)realloc(string, len * sizeof(char));
-        string[len - 1] = symbol;
-    }
+    fread(string, sizeof(char), N, f);
     return string;
 }
 
+void ks1_Push(char* Ks1FileName, KeySpace1* ks, int msize1, int lvl){
+//    Загрузка таблицы в файл
+    FILE *f = fopen(Ks1FileName, "r+b");
+    fwrite(&msize1, 1, sizeof(int), f);
+    fwrite(&lvl, 1, sizeof(int), f);
+    fwrite(ks, msize1, sizeof(KeySpace1), f);
+    fclose(f);
+}
+
 KeySpace1* ks1_Pull(char* ks1FileName, int msize1, int* lvl){
-    FILE *f = fopen(ks1FileName, "r+");
     if (msize1 != -1) {
         KeySpace1 *space = (KeySpace1*)calloc(msize1, sizeof(KeySpace1));
-        for (int i = 0; i < msize1; i++){
-            space[i].keyPos = -1;
-        }
-        fwrite(&msize1, sizeof(int), 1, f);
-        fclose(f);
         *lvl = 0;
+        ks1_Push(ks1FileName, space, msize1, *lvl);
         return space;
     }
     int n;
+    FILE *f = fopen(ks1FileName, "r+b");
     fread(&n, sizeof(int), 1, f);
     fread(lvl, sizeof(int), 1, f);
     KeySpace1* space = (KeySpace1*)calloc(n, sizeof(KeySpace1));
     fread(space, sizeof(KeySpace1), n, f);
     KeySpace1* buf = space;
-    for (int i = 0; i < n; i++, buf++){
+    for (int i = 0; i < *lvl; i++, buf++){
         buf->key = freadStr(buf->keyPos, f);
     }
     fclose(f);
     return space;
-}
-
-void ks1_Push(char* Ks1FileName, KeySpace1* ks, int msize1, int lvl){
-//    Загрузка таблицы в файл
-    FILE *f = fopen(Ks1FileName, "r+");
-    fwrite(&msize1, 1, sizeof(int), f);
-    fwrite(&lvl, 1, sizeof(int), f);
-    fwrite(ks, msize1, sizeof(KeySpace1), f);
-    fclose(f);
 }
 
 int ks1_FindIndex(char* requiredKey, KeySpace1* ks, int lvl){
@@ -129,6 +118,28 @@ int ks1_FindIndex(char* requiredKey, KeySpace1* ks, int lvl){
     return KEY_NF;
 }
 
+
+Node1* ks1_Find(char* requiredKey, KeySpace1* ks, int lvl, int version, char* Ks1FileName){
+//    Поиск элемента/тов с использованием версии
+//    Входные данные: Искомый ключ, ks, кол-во эл-в, версия
+//    Выходные данные: указатель на таблицу KS2 с результатами
+    int pos = ks1_FindIndex(requiredKey, ks, lvl);
+    if (pos == -1) return NULL;
+    FILE *f = fopen(Ks1FileName, "r+b");
+    fsetpos(f, &ks[pos].node);
+    Node1* buf = (Node1*)calloc(1, sizeof(Node1));
+    fread(buf, sizeof(Node1), 1, f);
+    while (buf->next && buf->release > version){
+        fsetpos(f, &buf->next);
+        fread(buf, sizeof(Node1), 1, f);
+    }
+    fclose(f);
+    if (buf->release == version){
+        return buf;
+    }
+    else return NULL;
+}
+
 Node1* getNode(fpos_t item){
 //    Создание объекта Node и запись в него данных
 //    Входные данные: указатель на эл-т Item
@@ -138,7 +149,7 @@ Node1* getNode(fpos_t item){
     return bufNode;
 }
 
-int ks1_Add(char* key, fpos_t item, KeySpace1* ks, int* lvl, int max, char* Ks1FileName){
+int ks1_Add(char* key, fpos_t item, KeySpace1* ks, int* lvl, int max, char* Ks1FileName, int* index){
 //    Добавление элемента в таблицу
 //    Входные данные: Ключ, информация, ks, количество эл-в и размер таблицы
 //    Выходные данные: 0 - ок, 1 - таблица заполнена
@@ -146,13 +157,14 @@ int ks1_Add(char* key, fpos_t item, KeySpace1* ks, int* lvl, int max, char* Ks1F
     if (*lvl == max) return TABLE_FULL;                         // Проверка на заполненость таблицы
     Node1* bufNode = getNode(item);
     int pos = ks1_FindIndex(key, ks, *lvl);
-    FILE *f = fopen(Ks1FileName, "r+");
+    FILE *f = fopen(Ks1FileName, "r+b");
     if (pos != -1) {                                            // Если ключ уже есть в таблице
         bufNode->next = ks[pos].node;
         Node1* fileNode = (Node1*)calloc(1, sizeof(Node1));
         fsetpos(f, &ks[pos].node);
         fread(fileNode, sizeof(Node1), 1, f);
         bufNode->release = fileNode->release + 1;
+        *index = bufNode->release;
 //        bufNode->info->index = bufNode->release;
 //        bufNode->info->ptr1 = ks + pos;
         fseek(f, 0, SEEK_END);
@@ -161,8 +173,11 @@ int ks1_Add(char* key, fpos_t item, KeySpace1* ks, int* lvl, int max, char* Ks1F
         fwrite(bufNode, sizeof(Node1), 1, f);
         ks[pos].node = bufPos;
         fclose(f);
+        free(fileNode);
+        free(bufNode);
         return ST_OK;
     }
+    *index = 0;
     KeySpace1 *buf = ks;
     int i = *lvl - 1;
     while (i >= 0 && str_compare(buf[i].key, key) > 0){        // Поиск места для вставки
@@ -173,7 +188,7 @@ int ks1_Add(char* key, fpos_t item, KeySpace1* ks, int* lvl, int max, char* Ks1F
     fseek(f, 0, SEEK_END);
     fpos_t keyPos;
     fgetpos(f, &keyPos);
-    fwrite(key, sizeof(char), strlen(key) + 1, f);
+    fwrite(key, sizeof(char), N, f);
     strcpy(buf[i + 1].key, key);                                      // Вставка
     buf[i + 1].keyPos = keyPos;
 //    bufNode->info->index = 0;
@@ -188,29 +203,106 @@ int ks1_Add(char* key, fpos_t item, KeySpace1* ks, int* lvl, int max, char* Ks1F
     return ST_OK;
 }
 
+int ks1_Delete(char* deletedKey, KeySpace1* ks, int *lvl, int version, KeySpace1* base, char* Ks1FileName){
+//  Удаление элемента по ключу и версии(или всех эл-в с конкретным ключем)
+//  Входные данные: ключ удаляемого эл-та, ks1, кол-во эл-в, версия, указатель на эл-т или NULL, nf,kbwf
+//  Выходные данные: 0 - ок, 2 - эл-т с заданным ключем не найден, 3 - эл-т с заданной версией не найден
+    int pos;
+    if (base){
+        pos =(int)(base - ks);
+    }
+    else {
+        pos = ks1_FindIndex(deletedKey, ks, *lvl);
+        if (pos == -1) return EL_NOTFOUND;
+    }
+    FILE *f = fopen(Ks1FileName, "r+b");
+    if (version != -1){                                     // Удаление по версии
+        Node1* buf = (Node1*)calloc(1, sizeof(Node1));
+        fsetpos(f, &ks[pos].node);
+        fread(buf, sizeof(Node1), 1, f);
+        if (buf->release == version){                       // Если первый элемент
+            ks[pos].node = buf->next;
+//            nodeFree(buf);
+            if (ks[pos].node){                 // Если элемент был единственным
+                fclose(f);
+                return ST_OK;
+            }
+            else {
+                for (int i = pos; i < *lvl - 1; i++){
+                    ks[i] = ks[i + 1];
+                }
+                free(ks[*lvl - 1].key);
+                (*lvl)--;
+                fclose(f);
+                return ST_OK;
+            }
+        }
+        Node1 *par = NULL;
+        while (buf->next && buf->release > version){              // Ищем нужный
+            par = buf;
+            fsetpos(f, &buf->next);
+            fread(buf, sizeof(Node1), 1, f);
+        }
+        if (buf->next && buf->release == version){                // Проверка
+            if (par){
+                par->next = buf->next;
+            }
+//            nodeFree(buf);
+            return ST_OK;
+        }
+        else return VERS_NOTFOUND;
+    }
+
+//    Node1 *delEl = (ks + pos)->node;                // Удаление без версии
+//    Node1 *bufEl = delEl;
+//    for (int i = pos; i < *lvl - 1; i++){
+//        ks[i] = ks[i + 1];
+//    }
+//    while (bufEl){
+//        delEl = bufEl;
+//        bufEl = bufEl->next;
+//        ks2_Delete(delEl->info->key2, t->ks2, t->msize2, 1);
+//        nodeFree(delEl);
+//    }
+//    free(ks[*lvl - 1].key);
+//    (*lvl)--;
+//    return ST_OK;
+}
+
+
+
+
 void ks1_Print(char* fileName){
-    FILE *f = fopen(fileName, "r+");
+    FILE *f = fopen(fileName, "r+b");
     int n;
     int lvl;
     fread(&n, sizeof(int), 1, f);
     fread(&lvl, sizeof(int), 1, f);
-    KeySpace1 *space = (KeySpace1*)calloc(1, sizeof(KeySpace1));
+    KeySpace1 *space = (KeySpace1*)calloc(n, sizeof(KeySpace1));
     fread(space, sizeof(KeySpace1), n, f);
     for (int i = 0; i < n; i++, space++){
         space->key = freadStr(space->keyPos, f);
-        if (space->key) printf("%s\n",space->key);
+        if (space->key && i < lvl) printf("%s\n", space->key);
         else printf("NULL\n");
     }
     fclose(f);
 }
 
 int main(){
-    int msize1 = 15;
+    int msize1 = 10;
     int lvl = 0;
-//    ks1_Print(ks1file);
-//    KeySpace1* ks1 = ks1_Pull(ks1file, msize1, &lvl);
-//    ks1_Add("a", 123, ks1, &lvl, msize1, ks1file);
-//    ks1_Push(ks1file, ks1, msize1, lvl);
+    int index;
+    ks1_Print(ks1file);
+    KeySpace1* ks1 = ks1_Pull(ks1file, -1, &lvl);
+//    ks1_Delete("f", ks1, &lvl, 0, NULL, ks1file);
+//    printf("%d", ks1_Find("w", ks1, lvl, 0, ks1file)->release);
+//    ks1_Add("f", 123, ks1, &lvl, msize1, ks1file, &index);
+//    ks1_Add("d", 123, ks1, &lvl, msize1, ks1file, &index);
+//    ks1_Add("a", 123, ks1, &lvl, msize1, ks1file, &index);
+//    ks1_Add("t", 123, ks1, &lvl, msize1, ks1file, &index);
+//    ks1_Add("w", 123, ks1, &lvl, msize1, ks1file, &index);
+//    ks1_Add("w", 123, ks1, &lvl, msize1, ks1file, &index);
+    ks1_Push(ks1file, ks1, msize1, lvl);
     ks1_Print(ks1file);
     return 0;
 }
