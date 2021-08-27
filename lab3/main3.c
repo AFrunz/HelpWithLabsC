@@ -36,7 +36,7 @@ char* getString(){
 int main(){
 
     char *var[] = {"0. Exit", "1. Add(key1, key2)", "2. Find(key1, key2)", "3. Delete(Key1, Key2)", "4. TableFind(Key1)",
-                   "5. TableFind(Key2)", "6. Table Delete(Key1)", "7. Table Delete(Key2)", "8. Print"};
+                   "5. TableFind(Key2)", "6. Table Delete(Key1)", "7. Table Delete(Key2)", "8. Print", "9. KS1Print"};
     int sizeVar = sizeof(var) / sizeof(char*);
 
     int choice = -1;
@@ -149,6 +149,9 @@ int main(){
         }
         else if (choice == 8){
             table_Print(t);
+        }
+        else if (choice == 9){
+            ks1_Print(t->ks1, t->csize1);
         }
 
         for (int i = 0; i < sizeVar; i++) {

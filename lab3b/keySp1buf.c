@@ -1,12 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#define ks1file "/student/b20503/b2050326/help/lab3b/ks1.bin"
-#define ks2file "/student/b20503/b2050326/help/lab3b/ks2.bin"
-#define infofile "/student/b20503/b2050326/help/lab3b/info.bin"
-//#define ks1file "C:\\Users\\frunz\\Desktop\\c_or_c++\\C\\lab3b\\ks1.bin"
-//#define ks2file "C:\\Users\\frunz\\Desktop\\c_or_c++\\C\\lab3b\\ks2.bin"
-//#define infofile "C:\\Users\\frunz\\Desktop\\c_or_c++\\C\\lab3b\\info.bin"
+//#define ks1file "/student/b20503/b2050326/help/lab3b/ks1.bin"
+//#define ks2file "/student/b20503/b2050326/help/lab3b/ks2.bin"
+//#define infofile "/student/b20503/b2050326/help/lab3b/info.bin"
+#define ks1file "C:\\Users\\frunz\\Desktop\\c_or_c++\\C\\lab3b\\ks1.bin"
+#define ks2file "C:\\Users\\frunz\\Desktop\\c_or_c++\\C\\lab3b\\ks2.bin"
+#define infofile "C:\\Users\\frunz\\Desktop\\c_or_c++\\C\\lab3b\\info.bin"
 #define N 100 // Максимальный размер ключа
 
 
@@ -223,17 +223,20 @@ int ks1_Delete(char* deletedKey, KeySpace1* ks, int *lvl, int version, KeySpace1
     if (buf->release == version){                       // Если первый элемент
         ks[pos].node = buf->next;
 //            nodeFree(buf);
-        if (ks[pos].node == 0){                 // Если элемент был единственным
-            free(ks[pos].key);
+        if (ks[pos].node != 0){                 // Если элемент не был единственным
+//            ks[pos].keyPos = 0;
+//            free(ks[pos].key);
             free(buf);
             fclose(f);
             return ST_OK;
         }
         else {
+            free(ks[pos].key);
             for (int i = pos; i < *lvl - 1; i++){
                 ks[i] = ks[i + 1];
             }
             free(ks[*lvl - 1].key);
+            ks[*lvl - 1].keyPos = 0;
             (*lvl)--;
             fclose(f);
             free(buf);
@@ -285,7 +288,7 @@ void ks1_Print(char* fileName){
         else printf("NULL\n");
     }
     fclose(f);
-    ks1_Free(buf, n, lvl);
+//    ks1_Free(buf, n, lvl);
 }
 
 
@@ -293,9 +296,9 @@ int main(){
     int msize1 = 10;
     int lvl = 0;
     int index;
-    ks1_Print(ks1file);
-//    KeySpace1* ks1 = ks1_Pull(ks1file, -1, &lvl);
-////    ks1_Delete("f", ks1, &lvl, 0, NULL, ks1file);
+//    ks1_Print(ks1file);
+    KeySpace1* ks1 = ks1_Pull(ks1file, -1, &lvl);
+    ks1_Delete("f", ks1, &lvl, 0, NULL, ks1file);
 ////    printf("%d", ks1_Find("w", ks1, lvl, 0, ks1file)->release);
 //    ks1_Add("f", 123, ks1, &lvl, msize1, ks1file, &index);
 //    ks1_Add("d", 123, ks1, &lvl, msize1, ks1file, &index);
@@ -303,8 +306,8 @@ int main(){
 //    ks1_Add("t", 123, ks1, &lvl, msize1, ks1file, &index);
 //    ks1_Add("w", 123, ks1, &lvl, msize1, ks1file, &index);
 //    ks1_Add("w", 123, ks1, &lvl, msize1, ks1file, &index);
-//    ks1_Push(ks1file, ks1, msize1, lvl);
-//    ks1_Free(ks1, msize1, lvl);
-//    ks1_Print(ks1file);
+    ks1_Push(ks1file, ks1, msize1, lvl);
+    ks1_Free(ks1, msize1, lvl);
+    ks1_Print(ks1file);
     return 0;
 }
