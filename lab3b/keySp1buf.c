@@ -60,7 +60,7 @@ int str_compare(char* s1, char* s2){
 }
 
 char* freadStr(fpos_t pos, FILE *f){
-    if (pos == 0) return NULL;
+    if (pos == (fpos_t)0) return NULL;
     char* string = (char*)calloc(N, sizeof(char));
     fsetpos(f, &pos);
     fread(string, sizeof(char), N, f);
@@ -129,7 +129,7 @@ Node1* ks1_Find(char* requiredKey, KeySpace1* ks, int lvl, int version, char* Ks
     fsetpos(f, &ks[pos].node);
     Node1* buf = (Node1*)calloc(1, sizeof(Node1));
     fread(buf, sizeof(Node1), 1, f);
-    while (buf->next && buf->release > version){
+    while (buf->next != (fpos_t)0 && buf->release > version){
         fsetpos(f, &buf->next);
         fread(buf, sizeof(Node1), 1, f);
     }
@@ -223,7 +223,7 @@ int ks1_Delete(char* deletedKey, KeySpace1* ks, int *lvl, int version, KeySpace1
     if (buf->release == version){                       // Если первый элемент
         ks[pos].node = buf->next;
 //            nodeFree(buf);
-        if (ks[pos].node){                 // Если элемент был единственным
+        if (ks[pos].node == (fpos_t)0){                 // Если элемент был единственным
             free(ks[pos].key);
             free(buf);
             fclose(f);
@@ -241,12 +241,12 @@ int ks1_Delete(char* deletedKey, KeySpace1* ks, int *lvl, int version, KeySpace1
         }
     }
     Node1 *par = NULL;
-    while (buf->next && buf->release > version){              // Ищем нужный
+    while (buf->next != (fpos_t)0 && buf->release > version){              // Ищем нужный
         par = buf;
         fsetpos(f, &buf->next);
         fread(buf, sizeof(Node1), 1, f);
     }
-    if (buf->next && buf->release == version){                // Проверка
+    if (buf->next != (fpos_t)0 && buf->release == version){                // Проверка
         if (par){
             par->next = buf->next;
         }
