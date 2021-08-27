@@ -235,7 +235,7 @@ int ks1_Delete(char* deletedKey, KeySpace1* ks, int *lvl, int version, KeySpace1
             for (int i = pos; i < *lvl - 1; i++){
                 ks[i] = ks[i + 1];
             }
-            free(ks[*lvl - 1].key);
+            ks[*lvl - 1].key = NULL;
             ks[*lvl - 1].keyPos = 0;
             (*lvl)--;
             fclose(f);
@@ -298,12 +298,11 @@ int main(){
     int index;
 //    ks1_Print(ks1file);
     KeySpace1* ks1 = ks1_Pull(ks1file, -1, &lvl);
-    ks1_Delete("f", ks1, &lvl, 0, NULL, ks1file);
-////    printf("%d", ks1_Find("w", ks1, lvl, 0, ks1file)->release);
+    ks1_Delete("t", ks1, &lvl, 0, NULL, ks1file);
 //    ks1_Add("f", 123, ks1, &lvl, msize1, ks1file, &index);
 //    ks1_Add("d", 123, ks1, &lvl, msize1, ks1file, &index);
 //    ks1_Add("a", 123, ks1, &lvl, msize1, ks1file, &index);
-//    ks1_Add("t", 123, ks1, &lvl, msize1, ks1file, &index);
+//   ks1_Add("t", 123, ks1, &lvl, msize1, ks1file, &index);
 //    ks1_Add("w", 123, ks1, &lvl, msize1, ks1file, &index);
 //    ks1_Add("w", 123, ks1, &lvl, msize1, ks1file, &index);
     ks1_Push(ks1file, ks1, msize1, lvl);
