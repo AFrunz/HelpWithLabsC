@@ -23,8 +23,8 @@ typedef struct Item{
 
 typedef struct KeySpace2{
     unsigned int key; /* ключ элемента */
-    fpos_t info;       /* указатель на информацию  Item*  */
-    fpos_t next; /* указатель на следующий элемент struct KeySpace2*  */
+    long int info;       /* указатель на информацию  Item*  */
+    long int next; /* указатель на следующий элемент struct KeySpace2*  */
 }KeySpace2;
 
 

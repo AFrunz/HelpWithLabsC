@@ -32,8 +32,8 @@ typedef struct Item{
 typedef struct KeySpace2{
     int status;         // заполненость эл-та (0 - эл-т пустой, 1 - эл-т заполнен)
     unsigned int key; /* ключ элемента */
-    fpos_t info;       /* указатель на информацию  Item*  */
-    fpos_t next; /* указатель на следующий элемент struct KeySpace2*  */
+    long int info;       /* указатель на информацию  Item*  */
+    long int next; /* указатель на следующий элемент struct KeySpace2*  */
 }KeySpace2;
 
 KeySpace2* ks2_Pull(char* ks2FileName, int msize2){
@@ -92,7 +92,7 @@ KeySpace2* ks2_Find(unsigned int requiredKey, KeySpace2* ks, int max, char* Ks2F
     return NULL;
 }
 
-KeySpace2* getKS(fpos_t item, unsigned int key, char* Ks2FileName){
+KeySpace2* getKS(long int item, unsigned int key, char* Ks2FileName){
 //    Создание элемента ks и запись в него данных
 //    Входные данные: данные, ключ
 //    Выходные данные: указатель на эл-т ks2
@@ -106,7 +106,7 @@ KeySpace2* getKS(fpos_t item, unsigned int key, char* Ks2FileName){
     return bufKS;
 }
 
-int ks2_Add(unsigned int key, fpos_t item, KeySpace2* ks, int max, char* Ks2FileName){
+int ks2_Add(unsigned int key, long int item, KeySpace2* ks, int max, char* Ks2FileName){
 //    Добавление элемента
 //    Входные данные: ключ, данные, ks, размер таблицы
 //    Выходные данные: код ошибки
@@ -123,7 +123,7 @@ int ks2_Add(unsigned int key, fpos_t item, KeySpace2* ks, int max, char* Ks2File
     }
     KeySpace2* bufKS = getKS(item, key, Ks2FileName);
     fseek(f, 0, SEEK_END);
-    fpos_t nextPos;
+    long int nextPos;
     fgetpos(f, &nextPos);
     fwrite(bufKS, sizeof(KeySpace2), 1, f);
     bufKS->next = (ks + pos)->next;
