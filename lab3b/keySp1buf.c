@@ -243,22 +243,29 @@ int ks1_Delete(char* deletedKey, KeySpace1* ks, int *lvl, int version, KeySpace1
             return ST_OK;
         }
     }
-    Node1 *par = NULL;
+    Node1 *par = (Node1*)calloc(1, sizeof (Node1));
+    long int parPos = ks[pos].node;
+    *par = *buf;
+    fseek(f, buf->next, SEEK_SET);
+    fread(buf, sizeof(Node1), 1, f);
     while (buf->next && buf->release > version){              // Ищем нужный
-        par = buf;
+        parPos = par->next;
+        *par = *buf;
         fseek(f, buf->next, SEEK_SET);
         fread(buf, sizeof(Node1), 1, f);
     }
-    if (buf->next && buf->release == version){                // Проверка
-        if (par){
-            par->next = buf->next;
-        }
+    if (buf->release == version){                // Проверка
+        par->next = buf->next;
+        fseek(f, parPos, SEEK_SET);
+        fwrite(par, sizeof(Node1), 1, f);
         fclose(f);
         free(buf);
+        free(par);
         return ST_OK;
     }
     else{
         fclose(f);
+        free(par);
         free(buf);
         return VERS_NOTFOUND;
     }
@@ -301,10 +308,10 @@ int main(){
 //    ks1_Add("f", 123, ks1, &lvl, msize1, ks1file, &index);
 //    ks1_Add("d", 123, ks1, &lvl, msize1, ks1file, &index);
 //    ks1_Add("a", 123, ks1, &lvl, msize1, ks1file, &index);
-//   ks1_Add("t", 123, ks1, &lvl, msize1, ks1file, &index);
+//    ks1_Add("t", 123, ks1, &lvl, msize1, ks1file, &index);
 //    ks1_Add("w", 123, ks1, &lvl, msize1, ks1file, &index);
 //    ks1_Add("w", 123, ks1, &lvl, msize1, ks1file, &index);
-    ks1_Delete("t", ks1, &lvl, 0, NULL, ks1file);
+    ks1_Delete("f", ks1, &lvl, 0, NULL, ks1file);
     ks1_Push(ks1file, ks1, msize1, lvl);
     ks1_Free(ks1, msize1, lvl);
     ks1_Print(ks1file);
