@@ -96,8 +96,6 @@ KeySpace2* ks2_Find(unsigned int requiredKey, KeySpace2* ks, int max, char* Ks2F
         fseek(f, buf->next, SEEK_SET);
         fread(buf, 1, sizeof(KeySpace2), f);
     }
-    fclose(f);
-    return NULL;
 }
 
 KeySpace2* getKS(long int item, unsigned int key, char* Ks2FileName){
@@ -149,6 +147,7 @@ int ks2_Delete(unsigned int deletedKey, KeySpace2* ks, int max, int flag, char* 
 //    Выходные данные: код ошибки
     KeySpace2* element = ks2_Find(deletedKey, ks, max, Ks2FileName);
     if (!element) return EL_NOTFOUND;
+    free(element);
     int pos = hash_f(deletedKey, max);
     KeySpace2* buf = ks + pos;
     FILE *f = fopen(Ks2FileName, "r+b");
@@ -221,12 +220,14 @@ void ks2_Print(char* fileName){
     fread(ks, sizeof(KeySpace2), n, f);
     for (int i = 0; i < n; i++, ks++){
         printf("%d %u", ks->status, ks->key);
-        KeySpace2 *buf = ks;
+        KeySpace2 *buf = (KeySpace2*)calloc(1, sizeof(KeySpace2));
+        *buf = *ks;
         while (buf->next){
             fseek(f, buf->next, SEEK_SET);
             fread(buf, sizeof(KeySpace2), 1, f);
             printf("-> %d %u", buf->status, buf->key);
         }
+        free(buf);
         printf("\n");
     }
     printf("\n");
