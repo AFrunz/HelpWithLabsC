@@ -9,6 +9,21 @@
 
 //char[n] key1 uint key2
 
+char* readStr(FILE* f, long int pos){
+    fseek(f, pos, SEEK_SET);
+    char* string = (char*)calloc(1, sizeof(char));
+    int len = 0;
+    char sym = '1';
+    while (sym != '\0'){
+        fread(&sym, sizeof(char), 1, f);
+        len++;
+        string = realloc(string, len * sizeof(char));
+        string[len - 1] = sym;
+    }
+    string[len] = '\0';
+    return string;
+}
+
 table* table_Pull(char* fks1, char* fks2, int msize1, int msize2){
 //    Считывание таблицы из файла
     table* t = (table*)calloc(1, sizeof(table));
@@ -72,8 +87,8 @@ int table_Add(char* key1, unsigned int key2, char* first, char* second, table* t
 int table_Delete(char* key1, unsigned int key2, table* t){
     Item* resFind = table_Find(key1, key2, t);
     if (!resFind) return -1;
-    ks1_Delete(key1, t->ks1, &t->csize1, resFind->vers1, NULL, t->ks1FN);
-    ks2_Delete(key2, t->ks2, t->msize2, 0, t->ks2FN);
+    ks1_Delete(key1, t->ks1, &t->csize1, resFind->vers1, -1, t->ks1FN);
+    ks2_Delete(key2, t->ks2, t->msize2, t->ks2FN);
     return 0;
 }
 
@@ -100,8 +115,13 @@ void table_Print(table* t){
         while (bufNode->release >= 0){
             fseek(fInf, bufNode->info, SEEK_SET);
             fread(item, sizeof(Item), 1, fInf);
-            printf("%5s %5d %5u\n", key1, bufNode->release, item->key2);
-            // Тут должна выводится информация
+            fseek(fInf, item->info, SEEK_SET);
+            fread(inf, sizeof(InfoType), 1, fInf);
+            char* first = readStr(fInf, inf->first);
+            char* second = readStr(fInf, inf->second);
+            printf("%5s %5d %5u %5s %5s\n", key1, bufNode->release, item->key2, first, second);
+            free(first);
+            free(second);
             if (bufNode->release == 0) break;
             fseek(f, bufNode->next, SEEK_SET);
             fread(bufNode, sizeof(Node1), 1, f);

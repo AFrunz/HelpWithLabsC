@@ -38,7 +38,7 @@ KeySpace1* ks1_Pull(char* ks1FileName, int newSize1, int* lvl, int* msize1);
 
 int ks1_Add(char* key, long int item, KeySpace1* ks, int* lvl, int max, char* Ks1FileName, int* index, int *ks1Pos);
 
-int ks1_Delete(char* deletedKey, KeySpace1* ks, int *lvl, int version, KeySpace1* base, char* Ks1FileName);
+int ks1_Delete(char* deletedKey, KeySpace1* ks, int *lvl, int version, int base, char* Ks1FileName);
 
 void ks1_Free(KeySpace1* ks, int n, int lvl);
 

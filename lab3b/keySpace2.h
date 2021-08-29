@@ -32,7 +32,7 @@ KeySpace2* ks2_Find(unsigned int requiredKey, KeySpace2* ks, int max, char* Ks2F
 
 int ks2_Add(unsigned int key, long int item, KeySpace2* ks, int max, char* Ks2FileName);
 
-int ks2_Delete(unsigned int deletedKey, KeySpace2* ks, int max, int flag, char* Ks2FileName);
+int ks2_Delete(unsigned int deletedKey, KeySpace2* ks, int max, char* Ks2FileName);
 
 void ks2_Free(KeySpace2* ks);
 

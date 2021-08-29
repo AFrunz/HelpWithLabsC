@@ -136,7 +136,7 @@ KeySpace2 *bufFind = ks2_Find(key, ks, max, Ks2FileName);
 }
 
 
-int ks2_Delete(unsigned int deletedKey, KeySpace2* ks, int max, int flag, char* Ks2FileName){
+int ks2_Delete(unsigned int deletedKey, KeySpace2* ks, int max, char* Ks2FileName){
 //    Удаление эл-та ks2
 //    Входные данные: ключ, ks, размер таблицы, флаг(0 - очищать данные, 1 - нет)
 //    Выходные данные: код ошибки

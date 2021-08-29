@@ -35,6 +35,8 @@ typedef enum ans {
     KEY2_AE = 5
 }ans;
 
+char* readStr(FILE* f, long int pos);
+
 table* table_Pull(char* fks1, char* fks2, int msize1, int msize2);
 
 void table_Push(table* t);

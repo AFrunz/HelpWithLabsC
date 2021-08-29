@@ -197,13 +197,13 @@ int ks1_Add(char* key, long int item, KeySpace1* ks, int* lvl, int max, char* Ks
     return ST_OK;
 }
 
-int ks1_Delete(char* deletedKey, KeySpace1* ks, int *lvl, int version, KeySpace1* base, char* Ks1FileName){
+int ks1_Delete(char* deletedKey, KeySpace1* ks, int *lvl, int version, int base, char* Ks1FileName){
 //  Удаление элемента по ключу и версии(или всех эл-в с конкретным ключом)
 //  Входные данные: ключ удаляемого эл-та, ks1, кол-во эл-в, версия, указатель на эл-т или NULL, nf,kbwf
 //  Выходные данные: 0 - ок, 2 - эл-т с заданным ключом не найден, 3 - эл-т с заданной версией не найден
     int pos;
-    if (base){
-        pos =(int)(base - ks);
+    if (base != -1){
+        pos = base;
     }
     else {
         pos = ks1_FindIndex(deletedKey, ks, *lvl);
