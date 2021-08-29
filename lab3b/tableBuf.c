@@ -1,35 +1,15 @@
 #include "keySpace1.h"
 #include "keySpace2.h"
+#include "table.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #define N 100
 
-typedef struct InfoType {
-    long int first, second; // char*
-}InfoType;
-
-typedef struct Item{
-    long int info;         // InfoType
-    int pos1;     // индекс в массиве эл-та 1го пр-ва
-    int vers1;      // версия этого эл-та
-    unsigned int key2; // ключ из 2-го пр-ва
-}Item;
-
-typedef struct table{
-    char* ks1FN;
-    char* ks2FN;
-    char* infoFN;
-    KeySpace1 *ks1;
-    KeySpace2 *ks2;
-    int csize1;
-    int msize1;
-    int msize2;
-}table;
 
 //char[n] key1 uint key2
 
-table* table_pull(char* fks1, char* fks2, int msize1, int msize2){
+table* table_Pull(char* fks1, char* fks2, int msize1, int msize2){
 //    Считывание таблицы из файла
     table* t = (table*)calloc(1, sizeof(table));
     t->ks1FN = (char*)calloc(strlen(fks1) + 1, sizeof(char));
@@ -105,5 +85,32 @@ void table_Free(table* t){
     free(t);
 }
 
-void table_Print();
+void table_Print(table* t){
+    printf("%5s %5s %5s %5s %5s\n", "key1", "vers", "key2", "first", "second");
+    KeySpace1* bufKs1 = t->ks1;
+    FILE *f = fopen(t->ks1FN, "rb");
+    FILE *fInf = fopen(t->infoFN, "rb");
+    Item* item = (Item*)calloc(1, sizeof(Item));
+    InfoType* inf = (InfoType*)calloc(1, sizeof(InfoType));
+    Node1* bufNode = calloc(1, sizeof(Node1));
+    for (int i = 0; i < t->csize1; i++, bufKs1++){
+        char* key1 = bufKs1->key;
+        fseek(f, bufKs1->node, SEEK_SET);
+        fread(bufNode, sizeof(Node1), 1, f);
+        while (bufNode->release >= 0){
+            fseek(fInf, bufNode->info, SEEK_SET);
+            fread(item, sizeof(Item), 1, fInf);
+            printf("%5s %5d %5u\n", key1, bufNode->release, item->key2);
+            // Тут должна выводится информация
+            if (bufNode->release == 0) break;
+            fseek(f, bufNode->next, SEEK_SET);
+            fread(bufNode, sizeof(Node1), 1, f);
+        }
+    }
+    fclose(f);
+    fclose(fInf);
+    free(item);
+    free(inf);
+    free(bufNode);
+}
 
