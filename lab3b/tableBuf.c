@@ -54,7 +54,10 @@ Item* table_Find(char* key1, unsigned int key2, table* t){
     fseek(f, find2Buf->info, SEEK_SET);
     fread(item, sizeof(Item), 1, f);
     Node1* find1Buf = ks1_Find(key1, t->ks1, t->csize1, item->vers1, t->ks1FN);
+    free(find2Buf);
+    fclose(f);
     if (!find1Buf) return NULL;
+    free(find1Buf);
     return item;
 }
 
@@ -80,6 +83,8 @@ int table_Add(char* key1, unsigned int key2, char* first, char* second, table* t
     ks1_Add(key1, itemPos, t->ks1, &t->csize1, t->msize1, t->ks1FN, &item->vers1, &item->pos1);
     ks2_Add(key2, itemPos, t->ks2, t->msize2, t->ks2FN);
     fwrite(item, sizeof(Item), 1, f);
+    free(item);
+    free(info);
     fclose(f);
     return 0;
 }
@@ -89,6 +94,7 @@ int table_Delete(char* key1, unsigned int key2, table* t){
     if (!resFind) return -1;
     ks1_Delete(key1, t->ks1, &t->csize1, resFind->vers1, -1, t->ks1FN);
     ks2_Delete(key2, t->ks2, t->msize2, t->ks2FN);
+    free(resFind);
     return 0;
 }
 
