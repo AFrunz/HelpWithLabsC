@@ -91,6 +91,7 @@ KeySpace2* ks2_Find(unsigned int requiredKey, KeySpace2* ks, int max, char* Ks2F
         }
         if (buf->next == 0) {
             fclose(f);
+            free(buf);
             return NULL;
         }
         fseek(f, buf->next, SEEK_SET);
@@ -242,7 +243,7 @@ void ks2_Print(char* fileName){
 
 int main(){
     int msize2 = 15;
-    ks2_Print(ks2file);
+//    ks2_Print(ks2file);
     KeySpace2* ks2 = ks2_Pull(ks2file, -1);
     ks2_Delete(39, ks2, msize2, 0, ks2file);
 //    ks2_Add(9, 150, ks2, msize2, ks2file);
@@ -251,7 +252,7 @@ int main(){
 //    ks2_Add(54, 150, ks2, msize2, ks2file);
     ks2_Push(ks2file, ks2, msize2);
     ks2_Free(ks2);
-    ks2_Print(ks2file);
+//    ks2_Print(ks2file);
     return 0;
 }
 

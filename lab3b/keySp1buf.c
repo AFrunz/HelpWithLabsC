@@ -303,7 +303,7 @@ int main(){
     int lvl = 0;
     int index;
 //    ks1_Print(ks1file);
-    KeySpace1* ks1 = ks1_Pull(ks1file, -1, &lvl);
+    KeySpace1* ks1 = ks1_Pull(ks1file, , &lvl);
 //    ks1_Add("f", 123, ks1, &lvl, msize1, ks1file, &index);
 //    ks1_Add("d", 123, ks1, &lvl, msize1, ks1file, &index);
 //    ks1_Add("a", 123, ks1, &lvl, msize1, ks1file, &index);
