@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "keySpace1.h"
 //#define ks1file "/student/b20503/b2050326/help/lab3b/ks1.bin"
 //#define ks2file "/student/b20503/b2050326/help/lab3b/ks2.bin"
 //#define infofile "/student/b20503/b2050326/help/lab3b/info.bin"
@@ -9,32 +10,20 @@
 #define infofile "C:\\Users\\frunz\\Desktop\\c_or_c++\\C\\lab3b\\info.bin"
 #define N 100 // Максимальный размер ключа
 
-
-typedef struct InfoType {
-    char *first, *second;
-}InfoType;
-
-typedef struct KeySpace1 KeySpace1;
+//
+//typedef struct InfoType {
+//    char *first, *second;
+//}InfoType;
 
 
-typedef struct Item{
-    InfoType *info;
-    KeySpace1* ptr1;     // указатель на эл-т 1го пр-ва
-    int index;      // версия этого эл-та
-    unsigned int key2; // ключ из 2-го пр-ва
-}Item;
 
-typedef struct Node1{
-    int release; /* номер версии */
-    long int info; /* указатель на информацию Item* */
-    long int next; /* указатель на следующий элемент struct Node1 */
-}Node1;
+//typedef struct Item{
+//    InfoType *info;
+//    KeySpace1* ptr1;     // указатель на эл-т 1го пр-ва
+//    int index;      // версия этого эл-та
+//    unsigned int key2; // ключ из 2-го пр-ва
+//}Item;
 
-struct KeySpace1{
-    long int keyPos; // Позиция ключа
-    char* key; /* ключ элемента */
-    long int node; /* указатель на информацию Node1*  */
-};
 
 typedef enum ans {
     KEY_NF = -1,
@@ -79,11 +68,12 @@ void ks1_Push(char* Ks1FileName, KeySpace1* ks, int msize1, int lvl){
     fclose(f);
 }
 
-KeySpace1* ks1_Pull(char* ks1FileName, int msize1, int* lvl){
-    if (msize1 != -1) {
-        KeySpace1 *space = (KeySpace1*)calloc(msize1, sizeof(KeySpace1));
+KeySpace1* ks1_Pull(char* ks1FileName, int newSize1, int* lvl, int* msize1){
+    if (newSize1 != -1) {
+        KeySpace1 *space = (KeySpace1*)calloc(newSize1, sizeof(KeySpace1));
         *lvl = 0;
-        ks1_Push(ks1FileName, space, msize1, *lvl);
+        ks1_Push(ks1FileName, space, newSize1, *lvl);
+        *msize1 = newSize1;
         return space;
     }
     int n;
@@ -97,6 +87,7 @@ KeySpace1* ks1_Pull(char* ks1FileName, int msize1, int* lvl){
         buf->key = freadStr(buf->keyPos, f);
     }
     fclose(f);
+    *msize1 = n;
     return space;
 }
 
@@ -152,7 +143,7 @@ Node1* getNode(long int item){
     return bufNode;
 }
 
-int ks1_Add(char* key, long int item, KeySpace1* ks, int* lvl, int max, char* Ks1FileName, int* index){
+int ks1_Add(char* key, long int item, KeySpace1* ks, int* lvl, int max, char* Ks1FileName, int* index, int *ks1Pos){
 //    Добавление элемента в таблицу
 //    Входные данные: Ключ, информация, ks, количество эл-в и размер таблицы
 //    Выходные данные: 0 - ок, 1 - таблица заполнена
@@ -177,6 +168,7 @@ int ks1_Add(char* key, long int item, KeySpace1* ks, int* lvl, int max, char* Ks
         fclose(f);
         free(fileNode);
         free(bufNode);
+        *ks1Pos = pos;
         return ST_OK;
     }
     *index = 0;
@@ -201,13 +193,14 @@ int ks1_Add(char* key, long int item, KeySpace1* ks, int* lvl, int max, char* Ks
     buf[i + 1].node = bufPos;
     (*lvl)++;
     fclose(f);
+    *ks1Pos = i + 1;
     return ST_OK;
 }
 
 int ks1_Delete(char* deletedKey, KeySpace1* ks, int *lvl, int version, KeySpace1* base, char* Ks1FileName){
-//  Удаление элемента по ключу и версии(или всех эл-в с конкретным ключем)
+//  Удаление элемента по ключу и версии(или всех эл-в с конкретным ключом)
 //  Входные данные: ключ удаляемого эл-та, ks1, кол-во эл-в, версия, указатель на эл-т или NULL, nf,kbwf
-//  Выходные данные: 0 - ок, 2 - эл-т с заданным ключем не найден, 3 - эл-т с заданной версией не найден
+//  Выходные данные: 0 - ок, 2 - эл-т с заданным ключом не найден, 3 - эл-т с заданной версией не найден
     int pos;
     if (base){
         pos =(int)(base - ks);
@@ -298,21 +291,21 @@ void ks1_Print(char* fileName){
 }
 
 
-int main(){
-    int msize1 = 10;
-    int lvl = 0;
-    int index;
+//int main(){
+//    int msize1 = 10;
+//    int lvl = 0;
+//    int index;
+////    ks1_Print(ks1file);
+//    KeySpace1* ks1 = ks1_Pull(ks1file, msize1, &lvl);
+////    ks1_Add("f", 123, ks1, &lvl, msize1, ks1file, &index);
+////    ks1_Add("d", 123, ks1, &lvl, msize1, ks1file, &index);
+////    ks1_Add("a", 123, ks1, &lvl, msize1, ks1file, &index);
+////    ks1_Add("t", 123, ks1, &lvl, msize1, ks1file, &index);
+////    ks1_Add("w", 123, ks1, &lvl, msize1, ks1file, &index);
+////    ks1_Add("w", 123, ks1, &lvl, msize1, ks1file, &index);
+//    ks1_Delete("w", ks1, &lvl, 1, NULL, ks1file);
+//    ks1_Push(ks1file, ks1, msize1, lvl);
+//    ks1_Free(ks1, msize1, lvl);
 //    ks1_Print(ks1file);
-    KeySpace1* ks1 = ks1_Pull(ks1file, , &lvl);
-//    ks1_Add("f", 123, ks1, &lvl, msize1, ks1file, &index);
-//    ks1_Add("d", 123, ks1, &lvl, msize1, ks1file, &index);
-//    ks1_Add("a", 123, ks1, &lvl, msize1, ks1file, &index);
-//    ks1_Add("t", 123, ks1, &lvl, msize1, ks1file, &index);
-//    ks1_Add("w", 123, ks1, &lvl, msize1, ks1file, &index);
-//    ks1_Add("w", 123, ks1, &lvl, msize1, ks1file, &index);
-    ks1_Delete("w", ks1, &lvl, 1, NULL, ks1file);
-    ks1_Push(ks1file, ks1, msize1, lvl);
-    ks1_Free(ks1, msize1, lvl);
-    ks1_Print(ks1file);
-    return 0;
-}
+//    return 0;
+//}

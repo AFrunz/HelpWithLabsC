@@ -1,4 +1,4 @@
-//#include "keySpace2.h"
+#include "keySpace2.h"
 #include <stdio.h>
 #include <stdlib.h>
 //#define ks1file "C:\\Users\\frunz\\Desktop\\c_or_c++\\C\\lab3b\\ks1.bin"
@@ -21,23 +21,17 @@ typedef enum ans {
 
 
 
-typedef struct InfoType {
-    char *first, *second;
-}InfoType;
+//typedef struct InfoType {
+//    char *first, *second;
+//}InfoType;
+//
+//typedef struct Item{
+//    InfoType *info;
+////    KeySpace1* ptr1;     // указатель на эл-т 1го пр-ва
+//    int index;      // версия этого эл-та
+//    unsigned int key2; // ключ из 2-го пр-ва
+//}Item;
 
-typedef struct Item{
-    InfoType *info;
-//    KeySpace1* ptr1;     // указатель на эл-т 1го пр-ва
-    int index;      // версия этого эл-та
-    unsigned int key2; // ключ из 2-го пр-ва
-}Item;
-
-typedef struct KeySpace2{
-    int status;         // заполненость эл-та (0 - эл-т пустой, 1 - эл-т заполнен)
-    unsigned int key; /* ключ элемента */
-    long int info;       /* указатель на информацию  Item*  */
-    long int next; /* указатель на следующий элемент struct KeySpace2*  */
-}KeySpace2;
 
 
 void ks2_Push(char* Ks2FileName, KeySpace2* ks, int n){
@@ -48,26 +42,26 @@ void ks2_Push(char* Ks2FileName, KeySpace2* ks, int n){
     fclose(f);
 }
 
-KeySpace2* ks2_Pull(char* ks2FileName, int msize2){
+KeySpace2* ks2_Pull(char* ks2FileName, int newSize2, int* msize2){
 //    Загрузка таблицы из файла
-    FILE *f = fopen(ks2FileName, "r+b");
-    if (msize2 != -1) {
-        KeySpace2 *space = (KeySpace2*)calloc(msize2, sizeof(KeySpace2));
-        fwrite(&msize2, sizeof(int), 1, f);
+    if (newSize2 != -1) {
+        FILE *f = fopen(ks2FileName, "w+b");
+        KeySpace2 *space = (KeySpace2*)calloc(newSize2, sizeof(KeySpace2));
+        fwrite(&newSize2, sizeof(int), 1, f);
         fclose(f);
-        ks2_Push(ks2FileName, space, msize2);
+        ks2_Push(ks2FileName, space, newSize2);
+        *msize2 = newSize2;
         return space;
     }
+    FILE *f = fopen(ks2FileName, "r+b");
     int n;
     fread(&n, sizeof(int), 1, f);
     KeySpace2* space = (KeySpace2*)calloc(n, sizeof(KeySpace2));
     fread(space, sizeof(KeySpace2), n, f);
     fclose(f);
+    *msize2 = n;
     return space;
 }
-
-
-
 
 
 int hash_f(unsigned int key, int max){
@@ -241,20 +235,20 @@ void ks2_Print(char* fileName){
 
 
 
-int main(){
-    int msize2 = 15;
-//    ks2_Print(ks2file);
-    KeySpace2* ks2 = ks2_Pull(ks2file, -1);
-    ks2_Delete(39, ks2, msize2, 0, ks2file);
-//    ks2_Add(9, 150, ks2, msize2, ks2file);
-//    ks2_Add(24, 150, ks2, msize2, ks2file);
-//    ks2_Add(39, 150, ks2, msize2, ks2file);
-//    ks2_Add(54, 150, ks2, msize2, ks2file);
-    ks2_Push(ks2file, ks2, msize2);
-    ks2_Free(ks2);
-//    ks2_Print(ks2file);
-    return 0;
-}
+//int main(){
+//    int msize2 = 15;
+////    ks2_Print(ks2file);
+//    KeySpace2* ks2 = ks2_Pull(ks2file, -1);
+//    ks2_Delete(39, ks2, msize2, 0, ks2file);
+////    ks2_Add(9, 150, ks2, msize2, ks2file);
+////    ks2_Add(24, 150, ks2, msize2, ks2file);
+////    ks2_Add(39, 150, ks2, msize2, ks2file);
+////    ks2_Add(54, 150, ks2, msize2, ks2file);
+//    ks2_Push(ks2file, ks2, msize2);
+//    ks2_Free(ks2);
+////    ks2_Print(ks2file);
+//    return 0;
+//}
 
 
 

@@ -1,48 +1,47 @@
 #ifndef C_KEYSPACE1_H
 #define C_KEYSPACE1_H
-#ifndef C_KEYSPACE2_H
-typedef struct InfoType {
-    char *first, *second;
-}InfoType;
-
-typedef struct KeySpace1 KeySpace1;
-
-typedef struct Item{
-    InfoType *info;
-    KeySpace1* ptr1;     // указатель на эл-т 1го пр-ва
-    int index;      // версия этого эл-та
-    unsigned int key2; // ключ из 2-го пр-ва
-}Item;
-
-#endif
-
+//#ifndef C_KEYSPACE2_H
+//typedef struct InfoType {
+//    char *first, *second;
+//}InfoType;
+//
+//typedef struct KeySpace1 KeySpace1;
+//
+//typedef struct Item{
+//    InfoType *info;
+//    KeySpace1* ptr1;     // указатель на эл-т 1го пр-ва
+//    int index;      // версия этого эл-та
+//    unsigned int key2; // ключ из 2-го пр-ва
+//}Item;
+//
+//#endif
 
 typedef struct Node1{
     int release; /* номер версии */
-    Item *info; /* указатель на информацию */
-    struct Node1 *next; /* указатель на следующий элемент */
+    long int info; /* указатель на информацию Item* */
+    long int next; /* указатель на следующий элемент struct Node1 */
 }Node1;
 
-struct KeySpace1{
+typedef struct KeySpace1{
+    long int keyPos; // Позиция ключа
     char* key; /* ключ элемента */
-    Node1 *node; /* указатель на информацию */
-};
-
-
-int str_compare(char* s1, char* s2);
-
-KeySpace1* ks1_Init(int size);
+    long int node; /* указатель на информацию Node1*  */
+}KeySpace1;
 
 int ks1_FindIndex(char* requiredKey, KeySpace1* ks, int lvl);
 
-int ks1_Add(char* key, Item* item, KeySpace1* ks, int* lvl, int max);
+Node1* ks1_Find(char* requiredKey, KeySpace1* ks, int lvl, int version, char* Ks1FileName);
 
-KeySpace1* ks1_Find(char* requiredKey, KeySpace1* ks, int lvl, int version);
+void ks1_Push(char* Ks1FileName, KeySpace1* ks, int msize1, int lvl);
 
-void ks1_Free(KeySpace1* ks, int lvl);
+KeySpace1* ks1_Pull(char* ks1FileName, int newSize1, int* lvl, int* msize1);
 
-void ks1_Print(KeySpace1* ks, int lvl);
+int ks1_Add(char* key, long int item, KeySpace1* ks, int* lvl, int max, char* Ks1FileName, int* index, int *ks1Pos);
 
-void nodeFree(Node1* el);
+int ks1_Delete(char* deletedKey, KeySpace1* ks, int *lvl, int version, KeySpace1* base, char* Ks1FileName);
+
+void ks1_Free(KeySpace1* ks, int n, int lvl);
+
+
 
 #endif //C_KEYSPACE1_H
