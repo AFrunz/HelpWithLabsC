@@ -47,7 +47,7 @@ char* getString(){
 int main(){
 
     char *var[] = {"0. Exit", "1. Add(key1, key2)", "2. Find(key1, key2)", "3. Delete(Key1, Key2)", "4. TableFind(Key1)",
-                   "!5. TableFind(Key2)", "6. Table Delete(Key1)", "!7. Table Delete(Key2)", "8. Print"};
+                   "5. TableFind(Key2)", "6. Table Delete(Key1)", "7. Table Delete(Key2)", "8. Print"};
     int sizeVar = sizeof(var) / sizeof(char*);
     int choice = -1;
 
