@@ -190,6 +190,7 @@ int ks2_Delete(unsigned int deletedKey, KeySpace2* ks, int max, int flag, char* 
                 break;
             }
             if (!buf->next) {
+                free(par);
                 free(buf);
                 fclose(f);
                 return EL_NOTFOUND;
@@ -202,6 +203,7 @@ int ks2_Delete(unsigned int deletedKey, KeySpace2* ks, int max, int flag, char* 
     }
     fclose(f);
     free(buf);
+    free(par);
 //    freeKS(buf, flag);
     return ST_OK;
 }
