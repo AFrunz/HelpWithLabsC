@@ -1,12 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#define ks1file "/student/b20503/b2050326/help/lab3b/ks1.bin"
-#define ks2file "/student/b20503/b2050326/help/lab3b/ks2.bin"
-#define infofile "/student/b20503/b2050326/help/lab3b/info.bin"
-//#define ks1file "C:\\Users\\frunz\\Desktop\\c_or_c++\\C\\lab3b\\ks1.bin"
-//#define ks2file "C:\\Users\\frunz\\Desktop\\c_or_c++\\C\\lab3b\\ks2.bin"
-//#define infofile "C:\\Users\\frunz\\Desktop\\c_or_c++\\C\\lab3b\\info.bin"
+//#define ks1file "/student/b20503/b2050326/help/lab3b/ks1.bin"
+//#define ks2file "/student/b20503/b2050326/help/lab3b/ks2.bin"
+//#define infofile "/student/b20503/b2050326/help/lab3b/info.bin"
+#define ks1file "C:\\Users\\frunz\\Desktop\\c_or_c++\\C\\lab3b\\ks1.bin"
+#define ks2file "C:\\Users\\frunz\\Desktop\\c_or_c++\\C\\lab3b\\ks2.bin"
+#define infofile "C:\\Users\\frunz\\Desktop\\c_or_c++\\C\\lab3b\\info.bin"
 #define N 100 // Максимальный размер ключа
 
 
@@ -269,7 +269,6 @@ int ks1_Delete(char* deletedKey, KeySpace1* ks, int *lvl, int version, KeySpace1
         free(buf);
         return VERS_NOTFOUND;
     }
-
 }
 
 
@@ -311,7 +310,7 @@ int main(){
 //    ks1_Add("t", 123, ks1, &lvl, msize1, ks1file, &index);
 //    ks1_Add("w", 123, ks1, &lvl, msize1, ks1file, &index);
 //    ks1_Add("w", 123, ks1, &lvl, msize1, ks1file, &index);
-    ks1_Delete("f", ks1, &lvl, 0, NULL, ks1file);
+    ks1_Delete("w", ks1, &lvl, 1, NULL, ks1file);
     ks1_Push(ks1file, ks1, msize1, lvl);
     ks1_Free(ks1, msize1, lvl);
     ks1_Print(ks1file);
