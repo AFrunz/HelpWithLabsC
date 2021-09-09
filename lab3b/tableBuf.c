@@ -20,6 +20,7 @@ char* readStr(FILE* f, long int pos){
         string = realloc(string, len * sizeof(char));
         string[len - 1] = sym;
     }
+    string = realloc(string, (len + 1) * sizeof(char));
     string[len] = '\0';
     return string;
 }
@@ -56,7 +57,10 @@ Item* table_Find(char* key1, unsigned int key2, table* t){
     Node1* find1Buf = ks1_Find(key1, t->ks1, t->csize1, item->vers1, t->ks1FN);
     free(find2Buf);
     fclose(f);
-    if (!find1Buf) return NULL;
+    if (!find1Buf) {
+        free(item);
+        return NULL;
+    }
     free(find1Buf);
     return item;
 }
@@ -99,7 +103,7 @@ int table_Delete(char* key1, unsigned int key2, table* t){
 }
 
 void table_Free(table* t){
-    ks1_Free(t->ks1, t->msize1, t->csize1);
+    ks1_Free(t->ks1, t->csize1);
     ks2_Free(t->ks2);
     if (t->ks1FN) free(t->ks1FN);
     if (t->ks2FN) free(t->ks2FN);

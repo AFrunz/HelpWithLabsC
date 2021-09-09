@@ -2,49 +2,68 @@
 #include <stdlib.h>
 #include <string.h>
 #include "table.h"
-#define size1 10
-#define size2 10
+#define N 100
 //#define ks1file "C:\\Users\\frunz\\Desktop\\c_or_c++\\C\\lab3b\\ks1.bin"
 //#define ks2file "C:\\Users\\frunz\\Desktop\\c_or_c++\\C\\lab3b\\ks2.bin"
 //#define infofile "C:\\Users\\frunz\\Desktop\\c_or_c++\\C\\lab3b\\info.bin"
-#define ks1file "/student/b20503/b2050326/help/lab3b/ks1.bin"
-#define ks2file "/student/b20503/b2050326/help/lab3b/ks2.bin"
-#define infofile "/student/b20503/b2050326/help/lab3b/info.bin"
+//#define ks1file "/student/b20503/b2050326/help/lab3b/ks1.bin"
+//#define ks2file "/student/b20503/b2050326/help/lab3b/ks2.bin"
+//#define infofile "/student/b20503/b2050326/help/lab3b/info.bin"
 
 
-
-
-
-
-char* getString(){
-    int n, len, len_res = 0;
-    char buf[51];
-    char *res = NULL;
-    do{
-        n = scanf("%50[^'\n']", buf);
-        if (n < 0){
-            if (!res) return NULL;
-        }
-        else if (n > 0) {
-            len = (int)strlen(buf);
-            len_res += len;
-            res = realloc(res, (len_res + 1) * sizeof(char));
-            memcpy(res + len_res - len, buf, len);
-        }
-        else{
-            scanf("%*c");
-        }
-    } while (n > 0);
-    if (len_res > 0){
-        res[len_res] = '\0';
-    }
-    else {
-        res = calloc(1, sizeof(char));
+char* getKeyString(int max) {
+    char* res = (char*)calloc(max, sizeof(char));
+    int n = scanf("%100[^\n]", res);
+    if (n < 0) {
+        free(res);
+        return NULL;
     }
     return res;
 }
 
+
+
+
+char *getString() {
+    char buf[81] = {0};
+    char *res = NULL;
+    int len = 0;
+    int n = 0;
+    do {
+        n = scanf("%80[^\n]", buf);
+        if (n < 0) {
+            if (!res) {
+                return NULL;
+            }
+        } else if (n > 0) {
+            int chunk_len = (int)strlen(buf);
+            int str_len = len + chunk_len;
+            res = realloc(res, str_len + 1);
+            memcpy(res + len, buf, chunk_len);
+            len = str_len;
+        } else {
+            scanf("%*c");
+        }
+    } while (n > 0);
+
+    if (len > 0) {
+        res[len] = '\0';
+    } else {
+        res = calloc(1, sizeof(char));
+    }
+
+    return res;
+}
+
 int main(){
+    // РАЗМЕРЫ ПРОСТРАНСТВ КЛЮЧЕЙ
+    int size1 = 10;
+    int size2 = 10;
+    // БАЗОВЫЕ ПУТИ ФАЙЛОВ
+    char* ks1file = "/mnt/c/Users/frunz/Desktop/c_or_c++/C/lab3b/ks1.bin";
+    char* ks2file = "/mnt/c/Users/frunz/Desktop/c_or_c++/C/lab3b/ks2.bin";
+    char* infofile = "/mnt/c/Users/frunz/Desktop/c_or_c++/C/lab3b/info.bin";
+
 
     char *var[] = {"0. Exit", "1. Add(key1, key2)", "2. Find(key1, key2)", "3. Delete(Key1, Key2)", "4. TableFind(Key1)",
                    "5. TableFind(Key2)", "6. Table Delete(Key1)", "7. Table Delete(Key2)", "8. Print"};
@@ -74,7 +93,7 @@ int main(){
     while (choice != 0){
         if (choice == 1) {
             printf("Enter key1 (str)\n");
-            char* key1 = getString();
+            char* key1 = getKeyString(N);
             printf("Enter key2 (u int)\n");
             unsigned int key2;
             scanf("%u%*c", &key2);
@@ -88,11 +107,11 @@ int main(){
             if (status == 0) printf("Success\n");
             free(s1);
             free(s2);
-            free(key1);
+            if (key1) free(key1);
         }
         else if (choice == 2){
             printf("Enter key1 (str)\n");
-            char* key1 = getString();
+            char* key1 = getKeyString(N);
             printf("Enter key2 (u int)\n");
             unsigned int key2;
             scanf("%u", &key2);
@@ -107,27 +126,28 @@ int main(){
                 char* second = readStr(f, info->second);
                 printf("%s %s\n", first, second);
                 free(buf);
+                free(info);
                 free(first);
                 free(second);
                 fclose(f);
             }
-            free(key1);
+            if (key1) free(key1);
         }
         else if (choice == 3){
             printf("Enter key1 (str)\n");
-            char* key1 = getString();
+            char* key1 = getKeyString(N);
             printf("Enter key2 (u int)\n");
             unsigned int key2;
             scanf("%u", &key2);
             status = table_Delete(key1, key2, t);
             if (status == -1) printf("Element not found\n");
             else printf("Success\n");
-            free(key1);
+            if (key1) free(key1);
         }
         else if (choice == 4){
             //TableFind(Key1)
             printf("Enter key1 (str)\n");
-            char* key1 = getString();
+            char* key1 = getKeyString(N);
             printf("Enter version (int)\n");
             int vers;
             scanf("%d", &vers);
@@ -152,7 +172,7 @@ int main(){
                 free(first);
                 free(second);
                 }
-            free(key1);
+            if (key1) free(key1);
             }
         else if (choice == 5){
             //TableFind(Key2)
@@ -183,7 +203,7 @@ int main(){
         else if (choice == 6){
             //Table Delete(Key1)
             printf("Enter key1 (str)\n");
-            char* key1 = getString();
+            char* key1 = getKeyString(N);
             printf("Enter version (int)\n");
             int vers;
             scanf("%d", &vers);
@@ -203,7 +223,7 @@ int main(){
             else {
                 printf("Key not found\n");
             }
-            free(key1);
+            if (key1) free(key1);
         }
         else if (choice == 7){
             // Table Delete(Key2)

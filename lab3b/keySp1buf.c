@@ -5,9 +5,9 @@
 //#define ks1file "/student/b20503/b2050326/help/lab3b/ks1.bin"
 //#define ks2file "/student/b20503/b2050326/help/lab3b/ks2.bin"
 //#define infofile "/student/b20503/b2050326/help/lab3b/info.bin"
-#define ks1file "C:\\Users\\frunz\\Desktop\\c_or_c++\\C\\lab3b\\ks1.bin"
-#define ks2file "C:\\Users\\frunz\\Desktop\\c_or_c++\\C\\lab3b\\ks2.bin"
-#define infofile "C:\\Users\\frunz\\Desktop\\c_or_c++\\C\\lab3b\\info.bin"
+//#define ks1file "C:\\Users\\frunz\\Desktop\\c_or_c++\\C\\lab3b\\ks1.bin"
+//#define ks2file "C:\\Users\\frunz\\Desktop\\c_or_c++\\C\\lab3b\\ks2.bin"
+//#define infofile "C:\\Users\\frunz\\Desktop\\c_or_c++\\C\\lab3b\\info.bin"
 #define N 100 // Максимальный размер ключа
 
 //
@@ -62,6 +62,10 @@ char* freadStr(long int pos, FILE *f){
 void ks1_Push(char* Ks1FileName, KeySpace1* ks, int msize1, int lvl){
 //    Загрузка таблицы в файл
     FILE *f = fopen(Ks1FileName, "r+b");
+    if (!f) {
+        perror("Error\n");
+        return;
+    }
     fwrite(&msize1, 1, sizeof(int), f);
     fwrite(&lvl, 1, sizeof(int), f);
     fwrite(ks, msize1, sizeof(KeySpace1), f);
@@ -131,7 +135,10 @@ Node1* ks1_Find(char* requiredKey, KeySpace1* ks, int lvl, int version, char* Ks
     if (buf->release == version){
         return buf;
     }
-    else return NULL;
+    else {
+        free(buf);
+        return NULL;
+    }
 }
 
 Node1* getNode(long int item){
@@ -265,7 +272,7 @@ int ks1_Delete(char* deletedKey, KeySpace1* ks, int *lvl, int version, int base,
 }
 
 
-void ks1_Free(KeySpace1* ks, int n, int lvl){
+void ks1_Free(KeySpace1* ks, int lvl){
     for (int i = 0; i < lvl; i++){
         if (ks[i].key) free(ks[i].key);
     }
@@ -287,7 +294,7 @@ void ks1_Print(char* fileName){
         else printf("NULL\n");
     }
     fclose(f);
-    ks1_Free(buf, n, lvl);
+    ks1_Free(buf, lvl);
 }
 
 

@@ -40,7 +40,7 @@ int ks1_Add(char* key, long int item, KeySpace1* ks, int* lvl, int max, char* Ks
 
 int ks1_Delete(char* deletedKey, KeySpace1* ks, int *lvl, int version, int base, char* Ks1FileName);
 
-void ks1_Free(KeySpace1* ks, int n, int lvl);
+void ks1_Free(KeySpace1* ks, int lvl);
 
 
 
