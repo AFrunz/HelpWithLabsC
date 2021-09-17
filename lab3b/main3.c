@@ -74,10 +74,11 @@ int main(){
     int fileChoice;
     table *t = NULL;
     scanf("%d", &fileChoice);
+    int fileStatus = 0;
+    int newChoice;
+    printf("Continue?\n1-Yes, 0-No\n");
+    scanf("%d%*c", &newChoice);
     if (fileChoice){
-        int newChoice;
-        printf("Continue?\n1-Yes, 0-No\n");
-        scanf("%d%*c", &newChoice);
         if (newChoice){
             t = table_Pull(ks1file, ks2file, -1, -1);
             t->infoFN = infofile;
@@ -87,7 +88,15 @@ int main(){
             t->infoFN = infofile;
         }
     }
-    else return 0;
+    else {
+        printf("Enter 1 ks file path\n");
+        ks1file = getString();
+        printf("Enter 2 ks file path\n");
+        ks2file = getString();
+        infofile = getString();
+        printf("Enter info file path\n");
+        fileStatus = 1;
+    }
     int status;
 
     while (choice != 0){
