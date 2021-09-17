@@ -6,6 +6,7 @@
 
 
 char* readStr(FILE* f, long int pos){
+    // Чтение строки произвольной длины из файла
     fseek(f, pos, SEEK_SET);
     char* string = (char*)calloc(1, sizeof(char));
     int len = 0;
@@ -22,6 +23,8 @@ char* readStr(FILE* f, long int pos){
 }
 
 KeySpace2* ks2FileInput(char* filename, int* size, int newMode){
+    // чтение таблицы из файла при newMode = 0
+    // Создание новой таблицы размером *size при newMode = 1
     if (newMode){
         FILE *f = fopen(filename, "w+b");
         if (!f) return NULL;
@@ -41,6 +44,7 @@ KeySpace2* ks2FileInput(char* filename, int* size, int newMode){
 }
 
 void ks2FileOutput(char* filename, int size, KeySpace2* table){
+    // Запись таблицы в файл
     FILE *f = fopen(filename, "r+b");
     if (!f) return;
     fwrite(&size, sizeof(int), 1, f);
@@ -49,19 +53,21 @@ void ks2FileOutput(char* filename, int size, KeySpace2* table){
 }
 
 unsigned int hashFunc(unsigned int x, int i, int size){
+    // хэш-функция
        return (x + i) % size;
 }
 
 int ks2Add(unsigned int key, KeySpace2* table, int size, const char* first, const char* second, const char* filename){
+//    Добавление эл-та в таблицу, на вход ключ, таблица, ее размер, первая и вторая строки информации и имя файла
     int i = 0;
     unsigned int pos = hashFunc(key, i, size);
-    while (table[pos].busy == 1){
+    while (table[pos].busy == 1){                                                       // Поиск места для вставки
         if (table[pos].busy == 1 && table[pos].key == key) return EL_ALREADYEXIST;
         pos = hashFunc(key, ++i, size);
         if (i == size) return TABLE_FULL;
     }
     KeySpace2 *buf = table + pos;
-    buf->busy = 1;
+    buf->busy = 1;                                                                      // Вставка
     buf->key = key;
     InfoType *info = (InfoType*)calloc(1, sizeof(InfoType));
     FILE *f = fopen(filename, "r+b");
@@ -78,6 +84,7 @@ int ks2Add(unsigned int key, KeySpace2* table, int size, const char* first, cons
 }
 
 int ks2Find(unsigned int key, KeySpace2* table, int size){
+    // Поиск по таблице
     int i = 0;
     unsigned int pos = hashFunc(key, i, size);
     while (table[pos].busy != 0){
@@ -89,6 +96,7 @@ int ks2Find(unsigned int key, KeySpace2* table, int size){
 }
 
 int ks2Delete(unsigned int key, KeySpace2* table, int size){
+    // Удаление эл-та из таблицы
     int pos = ks2Find(key, table, size);
     if (pos < 0) return EL_NOTFOUND;
     KeySpace2 *buf = table + pos;
@@ -97,6 +105,7 @@ int ks2Delete(unsigned int key, KeySpace2* table, int size){
 }
 
 void ks2Print(KeySpace2* table, int size, const char* filename){
+    // Вывод таблицы в консоль
     FILE *f = fopen(filename, "r+b");
     printf("%3s %4s %4s %4s\n", "ST", "KEY", "STR1", "STR2");
     InfoType *inf = (InfoType*)calloc(1, sizeof(InfoType));
@@ -119,21 +128,9 @@ void ks2Print(KeySpace2* table, int size, const char* filename){
 }
 
 void ks2Free(KeySpace2* table){
+    // очистка памяти под таблицу
     free(table);
 }
-
-
-//int main(){
-//    int size = 3;
-//    KeySpace2 *space = ks2FileInput(FNAME, &size, 0);
-////    KeySpace2* space = ks2Init(size);
-////    for (unsigned int i = 1; i < 14; i += 3){
-////        ks2Add(i, space, size, "a", "a", FNAME);
-////    }
-//    ks2Print(space, size, FNAME);
-//    ks2FileOutput(FNAME, size, space);
-//    return 0;
-//}
 
 
 
