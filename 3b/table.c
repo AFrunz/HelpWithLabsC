@@ -3,26 +3,23 @@
 #include <stdio.h>
 #include <string.h>
 
-typedef struct InfoType{
-    char *first, *second;
-}InfoType;
-
-typedef enum ans{
-    ST_OK = 0,
-    EL_NOTFOUND = -1,
-    EL_ALREADYEXIST = -2,
-    TABLE_FULL
 
 
-}ans;
-
-
-typedef struct KeySpace2{
-    short int busy;
-    unsigned int key;
-    InfoType *info;
-}KeySpace2;
-
+char* readStr(FILE* f, long int pos){
+    fseek(f, pos, SEEK_SET);
+    char* string = (char*)calloc(1, sizeof(char));
+    int len = 0;
+    char sym = '0';
+    while (sym != '\0'){
+        fread(&sym, sizeof(char), 1, f);
+        len++;
+        string = realloc(string, len * sizeof(char));
+        string[len - 1] = sym;
+    }
+    string = realloc(string, (len + 1) * sizeof(char));
+    string[len] = '\0';
+    return string;
+}
 
 KeySpace2* ks2FileInput(char* filename, int* size, int newMode){
     if (newMode){
@@ -48,21 +45,14 @@ void ks2FileOutput(char* filename, int size, KeySpace2* table){
     if (!f) return;
     fwrite(&size, sizeof(int), 1, f);
     fwrite(table, sizeof(KeySpace2), size, f);
+    fclose(f);
 }
-
-
 
 unsigned int hashFunc(unsigned int x, int i, int size){
        return (x + i) % size;
 }
 
-KeySpace2* ks2Init(int size){
-    if (size <= 0) return NULL;
-    KeySpace2 *buf = (KeySpace2*)calloc(size, sizeof(KeySpace2));
-    return buf;
-}
-
-int ks2Add(unsigned int key, KeySpace2* table, int size, char* first, char* second){
+int ks2Add(unsigned int key, KeySpace2* table, int size, const char* first, const char* second, const char* filename){
     int i = 0;
     unsigned int pos = hashFunc(key, i, size);
     while (table[pos].busy == 1){
@@ -73,11 +63,16 @@ int ks2Add(unsigned int key, KeySpace2* table, int size, char* first, char* seco
     KeySpace2 *buf = table + pos;
     buf->busy = 1;
     buf->key = key;
-    buf->info = (InfoType*)calloc(1, sizeof(InfoType));
-    buf->info->first = (char*)calloc(strlen(first) + 1, sizeof(char));
-    buf->info->second = (char*)calloc(strlen(second) + 1, sizeof(char));
-    strcpy(buf->info->first, first);
-    strcpy(buf->info->second, second);
+    InfoType *info = (InfoType*)calloc(1, sizeof(InfoType));
+    FILE *f = fopen(filename, "r+b");
+    fseek(f, 0, SEEK_END);
+    info->first = ftell(f);
+    fwrite(first, sizeof(char), strlen(first) + 1, f);
+    info->second = ftell(f);
+    fwrite(second, sizeof(char), strlen(second) + 1, f);
+    buf->info = ftell(f);
+    fwrite(info, sizeof(InfoType), 1, f);
+    fclose(f);
     return ST_OK;
 }
 
@@ -87,8 +82,9 @@ int ks2Find(unsigned int key, KeySpace2* table, int size){
     while (table[pos].busy != 0){
         if (table[pos].busy == 1 && table[pos].key == key) return (int)pos;
         pos = hashFunc(key, ++i, size);
+        if (i == size) return EL_NOTFOUND;
     }
-    return -1;
+    return EL_NOTFOUND;
 }
 
 int ks2Delete(unsigned int key, KeySpace2* table, int size){
@@ -96,54 +92,47 @@ int ks2Delete(unsigned int key, KeySpace2* table, int size){
     if (pos < 0) return EL_NOTFOUND;
     KeySpace2 *buf = table + pos;
     buf->busy = -1;
-    if (buf->info){
-        if (buf->info->first) free(buf->info->first);
-        if (buf->info->second) free(buf->info->second);
-        free(buf->info);
-    }
     return ST_OK;
 }
 
-void ks2Print(KeySpace2* table, int size){
+void ks2Print(KeySpace2* table, int size, const char* filename){
+    FILE *f = fopen(filename, "r+b");
     printf("%3s %4s %4s %4s\n", "ST", "KEY", "STR1", "STR2");
+    InfoType *inf = (InfoType*)calloc(1, sizeof(InfoType));
     for (int i = 0; i < size; i++, table++){
         if (table->busy == 1) {
-            printf("%3d %4u %4s %4s\n", table->busy, table->key, table->info->first, table->info->second);
+            fseek(f, table->info, SEEK_SET);
+            fread(inf, sizeof(InfoType), 1, f);
+            char* first = readStr(f, inf->first);
+            char* second = readStr(f, inf->second);
+            printf("%3d %4u %4s %4s\n", table->busy, table->key, first, second);
+            free(first);
+            free(second);
         }
         else {
             printf("%3d %4u\n", table->busy, table->key);
         }
     }
+    free(inf);
+    fclose(f);
 }
 
-void ks2Free(KeySpace2* table, int size){
-    KeySpace2 *buf = table;
-    for (int i = 0; i < size; i++, table++){
-        if (table->busy == 1){
-            if (table->info){
-                if (table->info->first) free(table->info->first);
-                if (table->info->second) free(table->info->second);
-                free(table->info);
-            }
-        }
-    }
-    free(buf);
+void ks2Free(KeySpace2* table){
+    free(table);
 }
 
 
-char* FNAME = "/mnt/c/Users/frunz/Desktop/c_or_c++/C/3b/tab.bin";
-
-int main(){
-    int size = 3;
-    KeySpace2 *space = ks2FileInput(FNAME, &size, 0);
-//    KeySpace2* space = ks2Init(size);
-//    for (unsigned int i = 1; i < 14; i += 3){
-//        ks2Add(i, space, size, "a", "a");
-//    }
-    ks2Print(space, size);
-    ks2FileOutput(FNAME, size, space);
-    return 0;
-}
+//int main(){
+//    int size = 3;
+//    KeySpace2 *space = ks2FileInput(FNAME, &size, 0);
+////    KeySpace2* space = ks2Init(size);
+////    for (unsigned int i = 1; i < 14; i += 3){
+////        ks2Add(i, space, size, "a", "a", FNAME);
+////    }
+//    ks2Print(space, size, FNAME);
+//    ks2FileOutput(FNAME, size, space);
+//    return 0;
+//}
 
 
 
