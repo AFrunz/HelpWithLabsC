@@ -73,6 +73,7 @@ int ks2Add(unsigned int key, KeySpace2* table, int size, const char* first, cons
     buf->info = ftell(f);
     fwrite(info, sizeof(InfoType), 1, f);
     fclose(f);
+    free(info);
     return ST_OK;
 }
 

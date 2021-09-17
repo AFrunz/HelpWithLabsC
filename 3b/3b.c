@@ -113,5 +113,6 @@ int main(){
 
     ks2FileOutput(FNAME, size, ks);
     ks2Free(ks);
+    if (!defaultFile) free(FNAME);
     return 0;
 }
