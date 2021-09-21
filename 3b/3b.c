@@ -38,8 +38,8 @@ char *getString() {
 int main(){
 
 //    ПУТЬ ПО УМОЛЧАНИЮ
-    char* FNAME = "/mnt/c/Users/frunz/Desktop/c_or_c++/C/3b/tab.bin";
-
+//    char* FNAME = "/mnt/c/Users/frunz/Desktop/c_or_c++/C/3b/tab.bin";
+    char* FNAME = "C:\\Users\\frunz\\Desktop\\c_or_c++\\C\\3b\\tab.bin";
 
     char* msg[] = {"0.Exit", "1.Add", "2.Delete", "3.Find", "4.Print"};
     const int msgSize = sizeof(msg) / sizeof(char*);
